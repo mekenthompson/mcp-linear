@@ -49,6 +49,7 @@ import {
 } from './cycle-handlers.js';
 import {
   // Initiative Management handlers
+  searchInitiativesHandler,
   getInitiativesHandler,
   getInitiativeByIdHandler,
   createInitiativeHandler,
@@ -123,6 +124,7 @@ export function registerToolHandlers(linearService: LinearService) {
     linear_addIssueToCycle: handleAddIssueToCycle(linearService),
 
     // Initiative Management tools
+    linear_searchInitiatives: searchInitiativesHandler(linearService),
     linear_getInitiatives: getInitiativesHandler(linearService),
     linear_getInitiativeById: getInitiativeByIdHandler(linearService),
     linear_createInitiative: createInitiativeHandler(linearService),
@@ -234,6 +236,7 @@ export {
   handleAddIssueToCycle,
 
   // Initiative Management handlers
+  searchInitiativesHandler,
   getInitiativesHandler,
   getInitiativeByIdHandler,
   createInitiativeHandler,

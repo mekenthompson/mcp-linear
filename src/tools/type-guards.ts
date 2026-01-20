@@ -829,6 +829,25 @@ export function isGetWorkflowStatesArgs(args: unknown): args is {
 }
 
 /**
+ * Type guard for linear_searchInitiatives tool arguments
+ */
+export function isSearchInitiativesInput(args: unknown): args is {
+  query: string;
+  includeArchived?: boolean;
+  limit?: number;
+} {
+  return (
+    typeof args === 'object' &&
+    args !== null &&
+    'query' in args &&
+    typeof (args as { query: string }).query === 'string' &&
+    (!('includeArchived' in args) ||
+      typeof (args as { includeArchived: boolean }).includeArchived === 'boolean') &&
+    (!('limit' in args) || typeof (args as { limit: number }).limit === 'number')
+  );
+}
+
+/**
  * Type guard for linear_getInitiatives tool arguments
  */
 export function isGetInitiativesInput(args: unknown): args is {

@@ -2,6 +2,45 @@ import { MCPToolDefinition } from '../../types.js';
 
 export const initiativeToolDefinitions: MCPToolDefinition[] = [
   {
+    name: 'linear_searchInitiatives',
+    description:
+      'Search for initiatives by name. Use this to find initiative IDs when you only know the name.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        query: {
+          type: 'string',
+          description:
+            'Search query to match against initiative names (case-insensitive partial match)',
+        },
+        includeArchived: {
+          type: 'boolean',
+          description: 'Include archived initiatives in the results',
+          default: false,
+        },
+        limit: {
+          type: 'number',
+          description: 'Maximum number of initiatives to return',
+          default: 20,
+        },
+      },
+      required: ['query'],
+    },
+    output_schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          description: { type: 'string' },
+          status: { type: 'string' },
+          url: { type: 'string' },
+        },
+      },
+    },
+  },
+  {
     name: 'linear_getInitiatives',
     description: 'Get a list of all initiatives from Linear',
     input_schema: {

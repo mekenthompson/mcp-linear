@@ -1895,6 +1895,43 @@ export class LinearService {
   }
 
   /**
+   * Search initiatives by name
+   * @param query Search query to match against initiative names
+   * @param includeArchived Whether to include archived initiatives
+   * @param limit Maximum number of results to return
+   * @returns List of matching initiatives
+   */
+  async searchInitiatives(args: {
+    query: string;
+    includeArchived?: boolean;
+    limit?: number;
+  }) {
+    try {
+      const searchQuery = args.query.toLowerCase();
+      // Fetch all initiatives and filter client-side (Linear API doesn't support name filtering)
+      const initiatives = await this.client.initiatives({
+        first: 100, // Fetch more to filter
+        includeArchived: args.includeArchived || false,
+      });
+
+      const matchingInitiatives = initiatives.nodes
+        .filter((initiative) => initiative.name.toLowerCase().includes(searchQuery))
+        .slice(0, args.limit || 20);
+
+      return matchingInitiatives.map((initiative) => ({
+        id: initiative.id,
+        name: initiative.name,
+        description: initiative.description,
+        status: initiative.status,
+        url: initiative.url,
+      }));
+    } catch (error) {
+      console.error('Error searching initiatives:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get all initiatives
    * @returns List of all initiatives
    */
@@ -1915,7 +1952,7 @@ export class LinearService {
             : null;
 
           // Fetch sub-initiatives count
-          const subInitiatives = await initiative.subInitiatives({ first: 0 });
+          const subInitiatives = await initiative.subInitiatives({ first: 1 });
 
           return {
             id: initiative.id,

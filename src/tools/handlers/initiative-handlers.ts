@@ -1,5 +1,6 @@
 import { LinearService } from '../../services/linear-service.js';
 import {
+  isSearchInitiativesInput,
   isGetInitiativesInput,
   isGetInitiativeByIdInput,
   isCreateInitiativeInput,
@@ -11,6 +12,19 @@ import {
   isRemoveProjectFromInitiativeInput,
   isGetSubInitiativesInput,
 } from '../type-guards.js';
+
+export function searchInitiativesHandler(linearService: LinearService) {
+  return async (args: unknown) => {
+    if (!isSearchInitiativesInput(args)) {
+      throw new Error('Invalid input for searchInitiatives');
+    }
+
+    console.log('[searchInitiatives] Searching initiatives with query:', args.query);
+    const initiatives = await linearService.searchInitiatives(args);
+    console.log(`[searchInitiatives] Found ${initiatives.length} matching initiatives`);
+    return initiatives;
+  };
+}
 
 export function getInitiativesHandler(linearService: LinearService) {
   return async (args: unknown) => {
