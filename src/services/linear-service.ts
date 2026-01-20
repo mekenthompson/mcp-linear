@@ -764,6 +764,7 @@ export class LinearService {
     targetDate?: string;
     leadId?: string;
     memberIds?: string[] | string;
+    labelIds?: string[];
     sortOrder?: number;
     icon?: string;
     color?: string;
@@ -785,6 +786,7 @@ export class LinearService {
       targetDate: args.targetDate ? new Date(args.targetDate) : undefined,
       leadId: args.leadId,
       memberIds: memberIds,
+      labelIds: args.labelIds,
       sortOrder: args.sortOrder,
       icon: args.icon,
       color: args.color,
