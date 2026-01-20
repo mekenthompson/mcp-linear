@@ -33,3 +33,14 @@ Thread: https://ampcode.com/threads/T-019bd8e8-5232-7333-8d04-513c52035e7d
   - Always check the SDK types (index.d.cts) to confirm correct field names
 ---
 
+
+## 2026-01-20 - US-003
+Thread: https://ampcode.com/threads/T-019bd8ed-5ff8-765a-b12d-5107e9678bc5
+- Fixed LinearService.createProject to use correct SDK field name `labelIds` instead of incorrect `projectLabelIds`
+- The tool definition and type guard already had labelIds implemented
+- Files changed:
+  - src/services/linear-service.ts (line 789: changed projectLabelIds to labelIds)
+- **Learnings:**
+  - Linear SDK ProjectCreateInput uses `labelIds` NOT `projectLabelIds`
+  - Always run typecheck to catch field name mismatches with SDK types
+---

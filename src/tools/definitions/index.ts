@@ -48,6 +48,30 @@ import {
   addIssueToCycleToolDefinition,
 } from './cycle-tools.js';
 import { initiativeToolDefinitions } from './initiative-tools.js';
+import {
+  getProjectLabelsToolDefinition,
+  createProjectLabelToolDefinition,
+  updateProjectLabelToolDefinition,
+} from './project-label-tools.js';
+import {
+  getProjectMilestonesToolDefinition,
+  createProjectMilestoneToolDefinition,
+  updateProjectMilestoneToolDefinition,
+} from './milestone-tools.js';
+import {
+  addEntityLinkToolDefinition,
+  getEntityLinksToolDefinition,
+  deleteEntityLinkToolDefinition,
+} from './entity-link-tools.js';
+import {
+  createCustomerNeedToolDefinition,
+  getCustomerNeedsToolDefinition,
+} from './customer-need-tools.js';
+import {
+  createProjectAttachmentToolDefinition,
+  getProjectAttachmentsToolDefinition,
+  deleteProjectAttachmentToolDefinition,
+} from './project-attachment-tools.js';
 
 // All tool definitions
 export const allToolDefinitions: MCPToolDefinition[] = [
@@ -82,6 +106,30 @@ export const allToolDefinitions: MCPToolDefinition[] = [
 
   // Initiative Management tools
   ...initiativeToolDefinitions,
+
+  // Project Label tools
+  getProjectLabelsToolDefinition,
+  createProjectLabelToolDefinition,
+  updateProjectLabelToolDefinition,
+
+  // Milestone tools
+  getProjectMilestonesToolDefinition,
+  createProjectMilestoneToolDefinition,
+  updateProjectMilestoneToolDefinition,
+
+  // Entity Link tools
+  addEntityLinkToolDefinition,
+  getEntityLinksToolDefinition,
+  deleteEntityLinkToolDefinition,
+
+  // Customer Need tools
+  createCustomerNeedToolDefinition,
+  getCustomerNeedsToolDefinition,
+
+  // Project Attachment tools
+  createProjectAttachmentToolDefinition,
+  getProjectAttachmentsToolDefinition,
+  deleteProjectAttachmentToolDefinition,
 
   // Issue tools
   getIssuesToolDefinition,
@@ -155,4 +203,28 @@ export {
   getCyclesToolDefinition,
   getActiveCycleToolDefinition,
   addIssueToCycleToolDefinition,
+
+  // Project Label tools
+  getProjectLabelsToolDefinition,
+  createProjectLabelToolDefinition,
+  updateProjectLabelToolDefinition,
+
+  // Milestone tools
+  getProjectMilestonesToolDefinition,
+  createProjectMilestoneToolDefinition,
+  updateProjectMilestoneToolDefinition,
+
+  // Entity Link tools
+  addEntityLinkToolDefinition,
+  getEntityLinksToolDefinition,
+  deleteEntityLinkToolDefinition,
+
+  // Customer Need tools
+  createCustomerNeedToolDefinition,
+  getCustomerNeedsToolDefinition,
+
+  // Project Attachment tools
+  createProjectAttachmentToolDefinition,
+  getProjectAttachmentsToolDefinition,
+  deleteProjectAttachmentToolDefinition,
 };

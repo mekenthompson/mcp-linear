@@ -2461,4 +2461,529 @@ export class LinearService {
       throw error;
     }
   }
+
+  // ==================== PROJECT LABELS ====================
+
+  /**
+   * Get all project labels
+   * @param includeArchived Whether to include archived labels
+   * @returns List of project labels
+   */
+  async getProjectLabels(includeArchived = false) {
+    try {
+      const labels = await this.client.projectLabels({
+        includeArchived,
+      });
+
+      return Promise.all(
+        labels.nodes.map(async (label) => {
+          const parentData = label.parent ? await label.parent : null;
+
+          return {
+            id: label.id,
+            name: label.name,
+            color: label.color,
+            description: label.description,
+            isGroup: label.isGroup,
+            parent: parentData
+              ? {
+                  id: parentData.id,
+                  name: parentData.name,
+                }
+              : null,
+          };
+        }),
+      );
+    } catch (error) {
+      console.error('Error getting project labels:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a project label
+   * @param args Label creation data
+   * @returns Created label
+   */
+  async createProjectLabel(args: {
+    name: string;
+    color?: string;
+    description?: string;
+    isGroup?: boolean;
+    parentId?: string;
+  }) {
+    try {
+      const createPayload = await this.client.createProjectLabel({
+        name: args.name,
+        color: args.color,
+        description: args.description,
+        isGroup: args.isGroup,
+        parentId: args.parentId,
+      });
+
+      if (createPayload.success && createPayload.projectLabel) {
+        const label = await createPayload.projectLabel;
+        return {
+          id: label.id,
+          name: label.name,
+          color: label.color,
+          description: label.description,
+          isGroup: label.isGroup,
+        };
+      } else {
+        throw new Error('Failed to create project label');
+      }
+    } catch (error) {
+      console.error('Error creating project label:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update a project label
+   * @param id Label ID
+   * @param updateData Update data
+   * @returns Updated label
+   */
+  async updateProjectLabel(
+    id: string,
+    updateData: {
+      name?: string;
+      color?: string;
+      description?: string;
+    },
+  ) {
+    try {
+      const updatePayload = await this.client.updateProjectLabel(id, {
+        name: updateData.name,
+        color: updateData.color,
+        description: updateData.description,
+      });
+
+      if (updatePayload.success && updatePayload.projectLabel) {
+        const label = await updatePayload.projectLabel;
+        return {
+          id: label.id,
+          name: label.name,
+          color: label.color,
+          description: label.description,
+        };
+      } else {
+        throw new Error('Failed to update project label');
+      }
+    } catch (error) {
+      console.error('Error updating project label:', error);
+      throw error;
+    }
+  }
+
+  // ==================== PROJECT MILESTONES ====================
+
+  /**
+   * Get milestones for a project
+   * @param projectId Project ID
+   * @returns List of milestones
+   */
+  async getProjectMilestones(projectId: string) {
+    try {
+      const project = await this.client.project(projectId);
+      if (!project) {
+        throw new Error(`Project with ID ${projectId} not found`);
+      }
+
+      const milestones = await project.projectMilestones();
+
+      return milestones.nodes.map((milestone) => ({
+        id: milestone.id,
+        name: milestone.name,
+        description: milestone.description,
+        targetDate: milestone.targetDate,
+        sortOrder: milestone.sortOrder,
+      }));
+    } catch (error) {
+      console.error('Error getting project milestones:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a project milestone
+   * @param args Milestone creation data
+   * @returns Created milestone
+   */
+  async createProjectMilestone(args: {
+    projectId: string;
+    name: string;
+    description?: string;
+    targetDate?: string;
+    sortOrder?: number;
+  }) {
+    try {
+      const createPayload = await this.client.createProjectMilestone({
+        projectId: args.projectId,
+        name: args.name,
+        description: args.description,
+        targetDate: args.targetDate ? new Date(args.targetDate) : undefined,
+        sortOrder: args.sortOrder,
+      });
+
+      if (createPayload.success && createPayload.projectMilestone) {
+        const milestone = await createPayload.projectMilestone;
+        return {
+          id: milestone.id,
+          name: milestone.name,
+          description: milestone.description,
+          targetDate: milestone.targetDate,
+          sortOrder: milestone.sortOrder,
+        };
+      } else {
+        throw new Error('Failed to create project milestone');
+      }
+    } catch (error) {
+      console.error('Error creating project milestone:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update a project milestone
+   * @param id Milestone ID
+   * @param updateData Update data
+   * @returns Updated milestone
+   */
+  async updateProjectMilestone(
+    id: string,
+    updateData: {
+      name?: string;
+      description?: string;
+      targetDate?: string;
+      sortOrder?: number;
+    },
+  ) {
+    try {
+      const updatePayload = await this.client.updateProjectMilestone(id, {
+        name: updateData.name,
+        description: updateData.description,
+        targetDate: updateData.targetDate ? new Date(updateData.targetDate) : undefined,
+        sortOrder: updateData.sortOrder,
+      });
+
+      if (updatePayload.success && updatePayload.projectMilestone) {
+        const milestone = await updatePayload.projectMilestone;
+        return {
+          id: milestone.id,
+          name: milestone.name,
+          description: milestone.description,
+          targetDate: milestone.targetDate,
+          sortOrder: milestone.sortOrder,
+        };
+      } else {
+        throw new Error('Failed to update project milestone');
+      }
+    } catch (error) {
+      console.error('Error updating project milestone:', error);
+      throw error;
+    }
+  }
+
+  // ==================== ENTITY LINKS ====================
+
+  /**
+   * Add an entity link to a project or initiative
+   * @param args Link creation data
+   * @returns Created link
+   */
+  async createEntityLink(args: {
+    label: string;
+    url: string;
+    projectId?: string;
+    initiativeId?: string;
+    sortOrder?: number;
+  }) {
+    try {
+      if (!args.projectId && !args.initiativeId) {
+        throw new Error('Either projectId or initiativeId must be provided');
+      }
+
+      const createPayload = await (this.client as any).entityExternalLinkCreate({
+        label: args.label,
+        url: args.url,
+        projectId: args.projectId,
+        initiativeId: args.initiativeId,
+        sortOrder: args.sortOrder,
+      });
+
+      if (createPayload.success && createPayload.entityExternalLink) {
+        const link = await createPayload.entityExternalLink;
+        return {
+          id: link.id,
+          label: link.label,
+          url: link.url,
+          sortOrder: link.sortOrder,
+        };
+      } else {
+        throw new Error('Failed to create entity link');
+      }
+    } catch (error) {
+      console.error('Error creating entity link:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get entity links for a project or initiative
+   * @param projectId Project ID (optional)
+   * @param initiativeId Initiative ID (optional)
+   * @returns List of links
+   */
+  async getEntityLinks(projectId?: string, initiativeId?: string) {
+    try {
+      if (!projectId && !initiativeId) {
+        throw new Error('Either projectId or initiativeId must be provided');
+      }
+
+      if (projectId) {
+        const project = await this.client.project(projectId);
+        if (!project) {
+          throw new Error(`Project with ID ${projectId} not found`);
+        }
+        const links = await project.externalLinks();
+        return links.nodes.map((link) => ({
+          id: link.id,
+          label: link.label,
+          url: link.url,
+          sortOrder: link.sortOrder,
+        }));
+      } else if (initiativeId) {
+        const initiative = await this.client.initiative(initiativeId);
+        if (!initiative) {
+          throw new Error(`Initiative with ID ${initiativeId} not found`);
+        }
+        const links = await initiative.links();
+        return links.nodes.map((link) => ({
+          id: link.id,
+          label: link.label,
+          url: link.url,
+          sortOrder: link.sortOrder,
+        }));
+      }
+
+      return [];
+    } catch (error) {
+      console.error('Error getting entity links:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete an entity link
+   * @param id Link ID
+   * @returns Success status
+   */
+  async deleteEntityLink(id: string) {
+    try {
+      const deletePayload = await (this.client as any).entityExternalLinkDelete(id);
+      return {
+        success: deletePayload.success,
+      };
+    } catch (error) {
+      console.error('Error deleting entity link:', error);
+      throw error;
+    }
+  }
+
+  // ==================== CUSTOMER NEEDS ====================
+
+  /**
+   * Create a customer need
+   * @param args Customer need creation data
+   * @returns Created customer need
+   */
+  async createCustomerNeed(args: {
+    body?: string;
+    customerId?: string;
+    customerExternalId?: string;
+    issueId?: string;
+    projectId?: string;
+    priority?: number;
+    attachmentUrl?: string;
+  }) {
+    try {
+      const createPayload = await (this.client as any).customerNeedCreate({
+        body: args.body,
+        customerId: args.customerId,
+        customerExternalId: args.customerExternalId,
+        issueId: args.issueId,
+        projectId: args.projectId,
+        priority: args.priority,
+        attachmentUrl: args.attachmentUrl,
+      });
+
+      if (createPayload.success && createPayload.customerNeed) {
+        const need = await createPayload.customerNeed;
+        const customerData = need.customer ? await need.customer : null;
+
+        return {
+          id: need.id,
+          body: need.body,
+          priority: need.priority,
+          customer: customerData
+            ? {
+                id: customerData.id,
+                name: customerData.name,
+              }
+            : null,
+        };
+      } else {
+        throw new Error('Failed to create customer need');
+      }
+    } catch (error) {
+      console.error('Error creating customer need:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get customer needs
+   * @param issueId Filter by issue ID
+   * @param projectId Filter by project ID
+   * @param limit Maximum results
+   * @returns List of customer needs
+   */
+  async getCustomerNeeds(issueId?: string, projectId?: string, limit = 50) {
+    try {
+      const filter: any = {};
+      if (issueId) {
+        filter.issue = { id: { eq: issueId } };
+      }
+      if (projectId) {
+        filter.project = { id: { eq: projectId } };
+      }
+
+      const needs = await (this.client as any).customerNeeds({
+        first: limit,
+        filter: Object.keys(filter).length > 0 ? filter : undefined,
+      });
+
+      return Promise.all(
+        needs.nodes.map(async (need: any) => {
+          const customerData = need.customer ? await need.customer : null;
+          const issueData = need.issue ? await need.issue : null;
+          const projectData = need.project ? await need.project : null;
+
+          return {
+            id: need.id,
+            body: need.body,
+            priority: need.priority,
+            customer: customerData
+              ? {
+                  id: customerData.id,
+                  name: customerData.name,
+                }
+              : null,
+            issue: issueData
+              ? {
+                  id: issueData.id,
+                  title: issueData.title,
+                }
+              : null,
+            project: projectData
+              ? {
+                  id: projectData.id,
+                  name: projectData.name,
+                }
+              : null,
+          };
+        }),
+      );
+    } catch (error) {
+      console.error('Error getting customer needs:', error);
+      throw error;
+    }
+  }
+
+  // ==================== PROJECT ATTACHMENTS ====================
+
+  /**
+   * Create a project attachment
+   * @param args Attachment creation data
+   * @returns Created attachment
+   */
+  async createProjectAttachment(args: {
+    projectId: string;
+    title: string;
+    url: string;
+    subtitle?: string;
+    metadata?: Record<string, unknown>;
+  }) {
+    try {
+      const createPayload = await (this.client as any).projectAttachmentCreate({
+        projectId: args.projectId,
+        title: args.title,
+        url: args.url,
+        subtitle: args.subtitle,
+        metadata: args.metadata,
+      });
+
+      if (createPayload.success && createPayload.attachment) {
+        const attachment = await createPayload.attachment;
+        return {
+          id: attachment.id,
+          title: attachment.title,
+          subtitle: attachment.subtitle,
+          url: attachment.url,
+          createdAt: attachment.createdAt,
+        };
+      } else {
+        throw new Error('Failed to create project attachment');
+      }
+    } catch (error) {
+      console.error('Error creating project attachment:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get attachments for a project
+   * @param projectId Project ID
+   * @returns List of attachments
+   */
+  async getProjectAttachments(projectId: string) {
+    try {
+      const project = await this.client.project(projectId);
+      if (!project) {
+        throw new Error(`Project with ID ${projectId} not found`);
+      }
+
+      const attachments = await (project as any).attachments();
+
+      return attachments.nodes.map((attachment: any) => ({
+        id: attachment.id,
+        title: attachment.title,
+        subtitle: attachment.subtitle,
+        url: attachment.url,
+        createdAt: attachment.createdAt,
+      }));
+    } catch (error) {
+      console.error('Error getting project attachments:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a project attachment
+   * @param id Attachment ID
+   * @returns Success status
+   */
+  async deleteProjectAttachment(id: string) {
+    try {
+      const deletePayload = await (this.client as any).projectAttachmentDelete(id);
+      return {
+        success: deletePayload.success,
+      };
+    } catch (error) {
+      console.error('Error deleting project attachment:', error);
+      throw error;
+    }
+  }
 }

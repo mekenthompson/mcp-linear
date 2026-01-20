@@ -27,7 +27,47 @@ The following tools are currently implemented and available in the MCP Linear:
 | ---------------------- | ------------------------------------------------------------------- | -------------- |
 | `linear_getProjects`   | Get a list of projects with pagination and filtering                | ✅ Implemented |
 | `linear_getProjectById`| Get a specific project by ID                                        | ✅ Implemented |
-| `linear_createProject` | Create a new project in Linear (supports icon)                      | ✅ Implemented |
+| `linear_createProject` | Create a new project in Linear (supports leadId, memberIds, labelIds) | ✅ Implemented |
+| `linear_updateProject` | Update an existing project (supports leadId, memberIds, labelIds) | ✅ Implemented |
+
+### Project Labels
+
+| Tool Name                    | Description                            | Status         |
+| ---------------------------- | -------------------------------------- | -------------- |
+| `linear_getProjectLabels`    | Get all project labels in the workspace | ✅ Implemented |
+| `linear_createProjectLabel`  | Create a new project label (or label group) | ✅ Implemented |
+| `linear_updateProjectLabel`  | Update an existing project label       | ✅ Implemented |
+
+### Project Milestones
+
+| Tool Name                       | Description                        | Status         |
+| ------------------------------- | ---------------------------------- | -------------- |
+| `linear_getProjectMilestones`   | Get all milestones for a project   | ✅ Implemented |
+| `linear_createProjectMilestone` | Create a new milestone on a project | ✅ Implemented |
+| `linear_updateProjectMilestone` | Update an existing project milestone | ✅ Implemented |
+
+### Entity Links (Resources)
+
+| Tool Name                | Description                                       | Status         |
+| ------------------------ | ------------------------------------------------- | -------------- |
+| `linear_addEntityLink`   | Add a resource link to a project or initiative    | ✅ Implemented |
+| `linear_getEntityLinks`  | Get resource links for a project or initiative    | ✅ Implemented |
+| `linear_deleteEntityLink`| Delete a resource link                            | ✅ Implemented |
+
+### Project Attachments
+
+| Tool Name                       | Description                           | Status         |
+| ------------------------------- | ------------------------------------- | -------------- |
+| `linear_createProjectAttachment`| Attach a document/file to a project   | ✅ Implemented |
+| `linear_getProjectAttachments`  | List attachments on a project         | ✅ Implemented |
+| `linear_deleteProjectAttachment`| Remove an attachment from a project   | ✅ Implemented |
+
+### Customer Needs
+
+| Tool Name                   | Description                                  | Status         |
+| --------------------------- | -------------------------------------------- | -------------- |
+| `linear_createCustomerNeed` | Link a customer need to an issue or project  | ✅ Implemented |
+| `linear_getCustomerNeeds`   | Query customer needs for issues or projects  | ✅ Implemented |
 
 ### Issue Tools
 
@@ -47,9 +87,9 @@ The following tools are currently implemented and available in the MCP Linear:
 | Tool Name                      | Description                                                   | Status         |
 | ------------------------------ | ------------------------------------------------------------- | -------------- |
 | `linear_assignIssue`           | Assign an issue to a user                                     | ✅ Implemented |
-| `linear_subscribeToIssue`      | Subscribe to issue updates                                    | 🔄 In Progress |
+| `linear_subscribeToIssue`      | Subscribe to issue updates                                    | ✅ Implemented |
 | `linear_convertIssueToSubtask` | Convert an issue to a subtask                                 | ✅ Implemented |
-| `linear_createIssueRelation`   | Create relations between issues (blocks, is blocked by, etc.) | 🔄 In Progress |
+| `linear_createIssueRelation`   | Create relations between issues (blocks, is blocked by, etc.) | ✅ Implemented |
 | `linear_archiveIssue`          | Archive an issue                                              | ✅ Implemented |
 | `linear_setIssuePriority`      | Set the priority of an issue                                  | ✅ Implemented |
 | `linear_transferIssue`         | Transfer an issue to another team                             | ✅ Implemented |
@@ -96,6 +136,7 @@ The following tools are currently implemented and available in the MCP Linear:
 | `linear_getInitiativeProjects`       | Get all projects in an initiative                                   | ✅ Implemented |
 | `linear_addProjectToInitiative`      | Add a project to an initiative                                      | ✅ Implemented |
 | `linear_removeProjectFromInitiative` | Remove a project from an initiative                                 | ✅ Implemented |
+| `linear_getSubInitiatives`           | Get all sub-initiatives for a parent initiative                     | ✅ Implemented |
 
 ## Recommended Future Tools
 

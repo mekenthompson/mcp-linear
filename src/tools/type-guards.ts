@@ -1026,3 +1026,285 @@ export function isGetSubInitiativesInput(args: unknown): args is {
       typeof (args as { includeArchived: boolean }).includeArchived === 'boolean')
   );
 }
+
+// ==================== PROJECT LABEL TYPE GUARDS ====================
+
+/**
+ * Type guard for linear_getProjectLabels tool arguments
+ */
+export function isGetProjectLabelsArgs(args: unknown): args is {
+  includeArchived?: boolean;
+} {
+  return (
+    typeof args === 'object' &&
+    args !== null &&
+    (!('includeArchived' in args) ||
+      typeof (args as { includeArchived: boolean }).includeArchived === 'boolean')
+  );
+}
+
+/**
+ * Type guard for linear_createProjectLabel tool arguments
+ */
+export function isCreateProjectLabelArgs(args: unknown): args is {
+  name: string;
+  color?: string;
+  description?: string;
+  isGroup?: boolean;
+  parentId?: string;
+} {
+  return (
+    typeof args === 'object' &&
+    args !== null &&
+    'name' in args &&
+    typeof (args as { name: string }).name === 'string' &&
+    (!('color' in args) || typeof (args as { color: string }).color === 'string') &&
+    (!('description' in args) ||
+      typeof (args as { description: string }).description === 'string') &&
+    (!('isGroup' in args) || typeof (args as { isGroup: boolean }).isGroup === 'boolean') &&
+    (!('parentId' in args) || typeof (args as { parentId: string }).parentId === 'string')
+  );
+}
+
+/**
+ * Type guard for linear_updateProjectLabel tool arguments
+ */
+export function isUpdateProjectLabelArgs(args: unknown): args is {
+  id: string;
+  name?: string;
+  color?: string;
+  description?: string;
+} {
+  return (
+    typeof args === 'object' &&
+    args !== null &&
+    'id' in args &&
+    typeof (args as { id: string }).id === 'string' &&
+    (!('name' in args) || typeof (args as { name: string }).name === 'string') &&
+    (!('color' in args) || typeof (args as { color: string }).color === 'string') &&
+    (!('description' in args) ||
+      typeof (args as { description: string }).description === 'string')
+  );
+}
+
+// ==================== MILESTONE TYPE GUARDS ====================
+
+/**
+ * Type guard for linear_getProjectMilestones tool arguments
+ */
+export function isGetProjectMilestonesArgs(args: unknown): args is {
+  projectId: string;
+} {
+  return (
+    typeof args === 'object' &&
+    args !== null &&
+    'projectId' in args &&
+    typeof (args as { projectId: string }).projectId === 'string'
+  );
+}
+
+/**
+ * Type guard for linear_createProjectMilestone tool arguments
+ */
+export function isCreateProjectMilestoneArgs(args: unknown): args is {
+  projectId: string;
+  name: string;
+  description?: string;
+  targetDate?: string;
+  sortOrder?: number;
+} {
+  return (
+    typeof args === 'object' &&
+    args !== null &&
+    'projectId' in args &&
+    typeof (args as { projectId: string }).projectId === 'string' &&
+    'name' in args &&
+    typeof (args as { name: string }).name === 'string' &&
+    (!('description' in args) ||
+      typeof (args as { description: string }).description === 'string') &&
+    (!('targetDate' in args) ||
+      typeof (args as { targetDate: string }).targetDate === 'string') &&
+    (!('sortOrder' in args) || typeof (args as { sortOrder: number }).sortOrder === 'number')
+  );
+}
+
+/**
+ * Type guard for linear_updateProjectMilestone tool arguments
+ */
+export function isUpdateProjectMilestoneArgs(args: unknown): args is {
+  id: string;
+  name?: string;
+  description?: string;
+  targetDate?: string;
+  sortOrder?: number;
+} {
+  return (
+    typeof args === 'object' &&
+    args !== null &&
+    'id' in args &&
+    typeof (args as { id: string }).id === 'string' &&
+    (!('name' in args) || typeof (args as { name: string }).name === 'string') &&
+    (!('description' in args) ||
+      typeof (args as { description: string }).description === 'string') &&
+    (!('targetDate' in args) ||
+      typeof (args as { targetDate: string }).targetDate === 'string') &&
+    (!('sortOrder' in args) || typeof (args as { sortOrder: number }).sortOrder === 'number')
+  );
+}
+
+// ==================== ENTITY LINK TYPE GUARDS ====================
+
+/**
+ * Type guard for linear_addEntityLink tool arguments
+ */
+export function isAddEntityLinkArgs(args: unknown): args is {
+  label: string;
+  url: string;
+  projectId?: string;
+  initiativeId?: string;
+  sortOrder?: number;
+} {
+  return (
+    typeof args === 'object' &&
+    args !== null &&
+    'label' in args &&
+    typeof (args as { label: string }).label === 'string' &&
+    'url' in args &&
+    typeof (args as { url: string }).url === 'string' &&
+    (!('projectId' in args) || typeof (args as { projectId: string }).projectId === 'string') &&
+    (!('initiativeId' in args) ||
+      typeof (args as { initiativeId: string }).initiativeId === 'string') &&
+    (!('sortOrder' in args) || typeof (args as { sortOrder: number }).sortOrder === 'number')
+  );
+}
+
+/**
+ * Type guard for linear_getEntityLinks tool arguments
+ */
+export function isGetEntityLinksArgs(args: unknown): args is {
+  projectId?: string;
+  initiativeId?: string;
+} {
+  return (
+    typeof args === 'object' &&
+    args !== null &&
+    (!('projectId' in args) || typeof (args as { projectId: string }).projectId === 'string') &&
+    (!('initiativeId' in args) ||
+      typeof (args as { initiativeId: string }).initiativeId === 'string')
+  );
+}
+
+/**
+ * Type guard for linear_deleteEntityLink tool arguments
+ */
+export function isDeleteEntityLinkArgs(args: unknown): args is {
+  id: string;
+} {
+  return (
+    typeof args === 'object' &&
+    args !== null &&
+    'id' in args &&
+    typeof (args as { id: string }).id === 'string'
+  );
+}
+
+// ==================== CUSTOMER NEED TYPE GUARDS ====================
+
+/**
+ * Type guard for linear_createCustomerNeed tool arguments
+ */
+export function isCreateCustomerNeedArgs(args: unknown): args is {
+  body?: string;
+  customerId?: string;
+  customerExternalId?: string;
+  issueId?: string;
+  projectId?: string;
+  priority?: number;
+  attachmentUrl?: string;
+} {
+  return (
+    typeof args === 'object' &&
+    args !== null &&
+    (!('body' in args) || typeof (args as { body: string }).body === 'string') &&
+    (!('customerId' in args) ||
+      typeof (args as { customerId: string }).customerId === 'string') &&
+    (!('customerExternalId' in args) ||
+      typeof (args as { customerExternalId: string }).customerExternalId === 'string') &&
+    (!('issueId' in args) || typeof (args as { issueId: string }).issueId === 'string') &&
+    (!('projectId' in args) || typeof (args as { projectId: string }).projectId === 'string') &&
+    (!('priority' in args) || typeof (args as { priority: number }).priority === 'number') &&
+    (!('attachmentUrl' in args) ||
+      typeof (args as { attachmentUrl: string }).attachmentUrl === 'string')
+  );
+}
+
+/**
+ * Type guard for linear_getCustomerNeeds tool arguments
+ */
+export function isGetCustomerNeedsArgs(args: unknown): args is {
+  issueId?: string;
+  projectId?: string;
+  limit?: number;
+} {
+  return (
+    typeof args === 'object' &&
+    args !== null &&
+    (!('issueId' in args) || typeof (args as { issueId: string }).issueId === 'string') &&
+    (!('projectId' in args) || typeof (args as { projectId: string }).projectId === 'string') &&
+    (!('limit' in args) || typeof (args as { limit: number }).limit === 'number')
+  );
+}
+
+// ==================== PROJECT ATTACHMENT TYPE GUARDS ====================
+
+/**
+ * Type guard for linear_createProjectAttachment tool arguments
+ */
+export function isCreateProjectAttachmentArgs(args: unknown): args is {
+  projectId: string;
+  title: string;
+  url: string;
+  subtitle?: string;
+  metadata?: Record<string, unknown>;
+} {
+  return (
+    typeof args === 'object' &&
+    args !== null &&
+    'projectId' in args &&
+    typeof (args as { projectId: string }).projectId === 'string' &&
+    'title' in args &&
+    typeof (args as { title: string }).title === 'string' &&
+    'url' in args &&
+    typeof (args as { url: string }).url === 'string' &&
+    (!('subtitle' in args) || typeof (args as { subtitle: string }).subtitle === 'string') &&
+    (!('metadata' in args) || typeof (args as { metadata: object }).metadata === 'object')
+  );
+}
+
+/**
+ * Type guard for linear_getProjectAttachments tool arguments
+ */
+export function isGetProjectAttachmentsArgs(args: unknown): args is {
+  projectId: string;
+} {
+  return (
+    typeof args === 'object' &&
+    args !== null &&
+    'projectId' in args &&
+    typeof (args as { projectId: string }).projectId === 'string'
+  );
+}
+
+/**
+ * Type guard for linear_deleteProjectAttachment tool arguments
+ */
+export function isDeleteProjectAttachmentArgs(args: unknown): args is {
+  id: string;
+} {
+  return (
+    typeof args === 'object' &&
+    args !== null &&
+    'id' in args &&
+    typeof (args as { id: string }).id === 'string'
+  );
+}

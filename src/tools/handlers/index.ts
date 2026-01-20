@@ -61,6 +61,30 @@ import {
   removeProjectFromInitiativeHandler,
   getSubInitiativesHandler,
 } from './initiative-handlers.js';
+import {
+  handleGetProjectLabels,
+  handleCreateProjectLabel,
+  handleUpdateProjectLabel,
+} from './project-label-handlers.js';
+import {
+  handleGetProjectMilestones,
+  handleCreateProjectMilestone,
+  handleUpdateProjectMilestone,
+} from './milestone-handlers.js';
+import {
+  handleAddEntityLink,
+  handleGetEntityLinks,
+  handleDeleteEntityLink,
+} from './entity-link-handlers.js';
+import {
+  handleCreateCustomerNeed,
+  handleGetCustomerNeeds,
+} from './customer-need-handlers.js';
+import {
+  handleCreateProjectAttachment,
+  handleGetProjectAttachments,
+  handleDeleteProjectAttachment,
+} from './project-attachment-handlers.js';
 
 /**
  * Registers all tool handlers for the MCP Linear
@@ -110,6 +134,30 @@ export function registerToolHandlers(linearService: LinearService) {
     linear_addProjectToInitiative: addProjectToInitiativeHandler(linearService),
     linear_removeProjectFromInitiative: removeProjectFromInitiativeHandler(linearService),
     linear_getSubInitiatives: getSubInitiativesHandler(linearService),
+
+    // Project Label tools
+    linear_getProjectLabels: handleGetProjectLabels(linearService),
+    linear_createProjectLabel: handleCreateProjectLabel(linearService),
+    linear_updateProjectLabel: handleUpdateProjectLabel(linearService),
+
+    // Milestone tools
+    linear_getProjectMilestones: handleGetProjectMilestones(linearService),
+    linear_createProjectMilestone: handleCreateProjectMilestone(linearService),
+    linear_updateProjectMilestone: handleUpdateProjectMilestone(linearService),
+
+    // Entity Link tools
+    linear_addEntityLink: handleAddEntityLink(linearService),
+    linear_getEntityLinks: handleGetEntityLinks(linearService),
+    linear_deleteEntityLink: handleDeleteEntityLink(linearService),
+
+    // Customer Need tools
+    linear_createCustomerNeed: handleCreateCustomerNeed(linearService),
+    linear_getCustomerNeeds: handleGetCustomerNeeds(linearService),
+
+    // Project Attachment tools
+    linear_createProjectAttachment: handleCreateProjectAttachment(linearService),
+    linear_getProjectAttachments: handleGetProjectAttachments(linearService),
+    linear_deleteProjectAttachment: handleDeleteProjectAttachment(linearService),
 
     // Issue tools
     linear_getIssues: handleGetIssues(linearService),
@@ -197,4 +245,28 @@ export {
   addProjectToInitiativeHandler,
   removeProjectFromInitiativeHandler,
   getSubInitiativesHandler,
+
+  // Project Label handlers
+  handleGetProjectLabels,
+  handleCreateProjectLabel,
+  handleUpdateProjectLabel,
+
+  // Milestone handlers
+  handleGetProjectMilestones,
+  handleCreateProjectMilestone,
+  handleUpdateProjectMilestone,
+
+  // Entity Link handlers
+  handleAddEntityLink,
+  handleGetEntityLinks,
+  handleDeleteEntityLink,
+
+  // Customer Need handlers
+  handleCreateCustomerNeed,
+  handleGetCustomerNeeds,
+
+  // Project Attachment handlers
+  handleCreateProjectAttachment,
+  handleGetProjectAttachments,
+  handleDeleteProjectAttachment,
 };
