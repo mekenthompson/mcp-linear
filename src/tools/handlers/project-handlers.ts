@@ -1,7 +1,13 @@
 import {
   isAddIssueToProjectArgs,
+  isBulkCreateProjectsArgs,
   isCreateProjectArgs,
+  isCreateProjectWithInitiativeArgs,
+  isGetProjectByIdArgs,
+  isGetProjectByUrlArgs,
   isGetProjectIssuesArgs,
+  isGetProjectsArgs,
+  isSearchProjectsArgs,
   isUpdateProjectArgs,
 } from '../type-guards.js';
 import { LinearService } from '../../services/linear-service.js';
@@ -13,9 +19,31 @@ import { logError } from '../../utils/config.js';
 export function handleGetProjects(linearService: LinearService) {
   return async (args: unknown) => {
     try {
-      return await linearService.getProjects();
+      if (!isGetProjectsArgs(args)) {
+        throw new Error('Invalid arguments for getProjects');
+      }
+
+      return await linearService.getProjects(args);
     } catch (error) {
       logError('Error getting projects', error);
+      throw error;
+    }
+  };
+}
+
+/**
+ * Handler for getting a project by ID
+ */
+export function handleGetProjectById(linearService: LinearService) {
+  return async (args: unknown) => {
+    try {
+      if (!isGetProjectByIdArgs(args)) {
+        throw new Error('Invalid arguments for getProjectById');
+      }
+
+      return await linearService.getProjectById(args.id);
+    } catch (error) {
+      logError('Error getting project by ID', error);
       throw error;
     }
   };
@@ -88,6 +116,78 @@ export function handleGetProjectIssues(linearService: LinearService) {
       return await linearService.getProjectIssues(args.projectId, args.limit);
     } catch (error) {
       logError('Error getting project issues', error);
+      throw error;
+    }
+  };
+}
+
+/**
+ * Handler for searching projects
+ */
+export function handleSearchProjects(linearService: LinearService) {
+  return async (args: unknown) => {
+    try {
+      if (!isSearchProjectsArgs(args)) {
+        throw new Error('Invalid arguments for searchProjects');
+      }
+
+      return await linearService.searchProjects(args);
+    } catch (error) {
+      logError('Error searching projects', error);
+      throw error;
+    }
+  };
+}
+
+/**
+ * Handler for getting a project by URL
+ */
+export function handleGetProjectByUrl(linearService: LinearService) {
+  return async (args: unknown) => {
+    try {
+      if (!isGetProjectByUrlArgs(args)) {
+        throw new Error('Invalid arguments for getProjectByUrl');
+      }
+
+      return await linearService.getProjectByUrl(args.url);
+    } catch (error) {
+      logError('Error getting project by URL', error);
+      throw error;
+    }
+  };
+}
+
+/**
+ * Handler for creating a project with initiative
+ */
+export function handleCreateProjectWithInitiative(linearService: LinearService) {
+  return async (args: unknown) => {
+    try {
+      if (!isCreateProjectWithInitiativeArgs(args)) {
+        throw new Error('Invalid arguments for createProjectWithInitiative');
+      }
+
+      return await linearService.createProjectWithInitiative(args);
+    } catch (error) {
+      logError('Error creating project with initiative', error);
+      throw error;
+    }
+  };
+}
+
+/**
+ * Handler for bulk creating projects
+ */
+export function handleBulkCreateProjects(linearService: LinearService) {
+  return async (args: unknown) => {
+    try {
+      if (!isBulkCreateProjectsArgs(args)) {
+        throw new Error('Invalid arguments for bulkCreateProjects');
+      }
+
+      return await linearService.bulkCreateProjects(args.projects);
+    } catch (error) {
+      logError('Error bulk creating projects', error);
       throw error;
     }
   };

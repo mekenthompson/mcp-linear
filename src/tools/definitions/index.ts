@@ -23,11 +23,16 @@ import {
 } from './issue-tools.js';
 import {
   getProjectsToolDefinition,
+  getProjectByIdToolDefinition,
   createProjectToolDefinition,
   // Project Management tools
   updateProjectToolDefinition,
   addIssueToProjectToolDefinition,
   getProjectIssuesToolDefinition,
+  searchProjectsToolDefinition,
+  getProjectByUrlToolDefinition,
+  createProjectWithInitiativeToolDefinition,
+  bulkCreateProjectsToolDefinition,
 } from './project-tools.js';
 import { getTeamsToolDefinition, getWorkflowStatesToolDefinition } from './team-tools.js';
 import {
@@ -58,12 +63,17 @@ export const allToolDefinitions: MCPToolDefinition[] = [
 
   // Project tools
   getProjectsToolDefinition,
+  getProjectByIdToolDefinition,
   createProjectToolDefinition,
 
   // Project Management tools
   updateProjectToolDefinition,
   addIssueToProjectToolDefinition,
   getProjectIssuesToolDefinition,
+  searchProjectsToolDefinition,
+  getProjectByUrlToolDefinition,
+  createProjectWithInitiativeToolDefinition,
+  bulkCreateProjectsToolDefinition,
 
   // Cycle Management tools
   getCyclesToolDefinition,
@@ -109,6 +119,7 @@ export {
   addIssueLabelToolDefinition,
   removeIssueLabelToolDefinition,
   getProjectsToolDefinition,
+  getProjectByIdToolDefinition,
   createProjectToolDefinition,
   getTeamsToolDefinition,
   getWorkflowStatesToolDefinition,
@@ -135,6 +146,10 @@ export {
   updateProjectToolDefinition,
   addIssueToProjectToolDefinition,
   getProjectIssuesToolDefinition,
+  searchProjectsToolDefinition,
+  getProjectByUrlToolDefinition,
+  createProjectWithInitiativeToolDefinition,
+  bulkCreateProjectsToolDefinition,
 
   // Cycle Management tools
   getCyclesToolDefinition,

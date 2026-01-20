@@ -8,29 +8,59 @@ export const getProjectsToolDefinition: MCPToolDefinition = {
   description: 'Get a list of projects from Linear',
   input_schema: {
     type: 'object',
-    properties: {},
+    properties: {
+      limit: {
+        type: 'number',
+        description: 'Maximum number of projects to return (default: 50)',
+      },
+      cursor: {
+        type: 'string',
+        description: 'Cursor for pagination (use endCursor from previous response)',
+      },
+      teamId: {
+        type: 'string',
+        description: 'Filter projects by team ID',
+      },
+      includeArchived: {
+        type: 'boolean',
+        description: 'Include archived projects (default: false)',
+      },
+    },
   },
   output_schema: {
-    type: 'array',
-    items: {
-      type: 'object',
-      properties: {
-        id: { type: 'string' },
-        name: { type: 'string' },
-        description: { type: 'string' },
-        content: { type: 'string' },
-        state: { type: 'string' },
-        teams: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              name: { type: 'string' },
+    type: 'object',
+    properties: {
+      projects: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            description: { type: 'string' },
+            content: { type: 'string' },
+            state: { type: 'string' },
+            icon: { type: 'string' },
+            teams: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  name: { type: 'string' },
+                },
+              },
             },
+            url: { type: 'string' },
           },
         },
-        url: { type: 'string' },
+      },
+      pageInfo: {
+        type: 'object',
+        properties: {
+          hasNextPage: { type: 'boolean' },
+          endCursor: { type: 'string' },
+        },
       },
     },
   },
@@ -67,6 +97,24 @@ export const createProjectToolDefinition: MCPToolDefinition = {
         description:
           "Initial state of the project (e.g., 'planned', 'started', 'paused', 'completed', 'canceled')",
       },
+      icon: {
+        type: 'string',
+        description: 'Icon emoji for the project (e.g., "🚀")',
+      },
+      leadId: {
+        type: 'string',
+        description: 'The identifier of the project lead (user ID)',
+      },
+      memberIds: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'The identifiers of the members of this project',
+      },
+      labelIds: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'The identifiers of the project labels to attach',
+      },
     },
     required: ['name', 'teamIds'],
   },
@@ -76,6 +124,13 @@ export const createProjectToolDefinition: MCPToolDefinition = {
       id: { type: 'string' },
       name: { type: 'string' },
       url: { type: 'string' },
+      lead: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+        },
+      },
     },
   },
 };
@@ -110,6 +165,24 @@ export const updateProjectToolDefinition: MCPToolDefinition = {
         description:
           "New state of the project (e.g., 'planned', 'started', 'paused', 'completed', 'canceled')",
       },
+      icon: {
+        type: 'string',
+        description: 'Icon emoji for the project (e.g., "🚀")',
+      },
+      leadId: {
+        type: 'string',
+        description: 'The identifier of the project lead (user ID)',
+      },
+      memberIds: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'The identifiers of the members of this project',
+      },
+      labelIds: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'The identifiers of the project labels to attach',
+      },
     },
     required: ['id'],
   },
@@ -120,6 +193,7 @@ export const updateProjectToolDefinition: MCPToolDefinition = {
       name: { type: 'string' },
       description: { type: 'string' },
       state: { type: 'string' },
+      icon: { type: 'string' },
       url: { type: 'string' },
     },
   },
@@ -202,6 +276,243 @@ export const getProjectIssuesToolDefinition: MCPToolDefinition = {
         team: { type: 'object' },
         assignee: { type: 'object' },
         url: { type: 'string' },
+      },
+    },
+  },
+};
+
+/**
+ * Tool definition for getting a project by ID
+ */
+export const getProjectByIdToolDefinition: MCPToolDefinition = {
+  name: 'linear_getProjectById',
+  description: 'Get a specific project by ID',
+  input_schema: {
+    type: 'object',
+    properties: {
+      id: {
+        type: 'string',
+        description: 'The ID of the project to retrieve',
+      },
+    },
+    required: ['id'],
+  },
+  output_schema: {
+    type: 'object',
+    properties: {
+      id: { type: 'string' },
+      name: { type: 'string' },
+      description: { type: 'string' },
+      content: { type: 'string' },
+      state: { type: 'string' },
+      icon: { type: 'string' },
+      teams: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+          },
+        },
+      },
+      url: { type: 'string' },
+    },
+  },
+};
+
+/**
+ * Tool definition for searching projects by name
+ */
+export const searchProjectsToolDefinition: MCPToolDefinition = {
+  name: 'linear_searchProjects',
+  description: 'Search for projects by name',
+  input_schema: {
+    type: 'object',
+    properties: {
+      query: {
+        type: 'string',
+        description: 'Search query to match against project names',
+      },
+      teamId: {
+        type: 'string',
+        description: 'Filter by team ID',
+      },
+      state: {
+        type: 'string',
+        description: 'Filter by project state (e.g., planned, started, paused, completed, canceled)',
+      },
+      limit: {
+        type: 'number',
+        description: 'Maximum number of results to return (default: 25)',
+      },
+    },
+    required: ['query'],
+  },
+  output_schema: {
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        name: { type: 'string' },
+        description: { type: 'string' },
+        state: { type: 'string' },
+        icon: { type: 'string' },
+        url: { type: 'string' },
+      },
+    },
+  },
+};
+
+/**
+ * Tool definition for getting a project by URL
+ */
+export const getProjectByUrlToolDefinition: MCPToolDefinition = {
+  name: 'linear_getProjectByUrl',
+  description: 'Get a project by its Linear URL',
+  input_schema: {
+    type: 'object',
+    properties: {
+      url: {
+        type: 'string',
+        description: 'The Linear project URL',
+      },
+    },
+    required: ['url'],
+  },
+  output_schema: {
+    type: 'object',
+    properties: {
+      id: { type: 'string' },
+      name: { type: 'string' },
+      description: { type: 'string' },
+      content: { type: 'string' },
+      state: { type: 'string' },
+      icon: { type: 'string' },
+      teams: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+          },
+        },
+      },
+      url: { type: 'string' },
+    },
+  },
+};
+
+/**
+ * Tool definition for creating a project with initiative
+ */
+export const createProjectWithInitiativeToolDefinition: MCPToolDefinition = {
+  name: 'linear_createProjectWithInitiative',
+  description: 'Create a new project and add it to an initiative in one call',
+  input_schema: {
+    type: 'object',
+    properties: {
+      name: {
+        type: 'string',
+        description: 'Name of the project',
+      },
+      description: {
+        type: 'string',
+        description: 'Short summary of the project',
+      },
+      teamIds: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'IDs of the teams this project belongs to',
+      },
+      initiativeId: {
+        type: 'string',
+        description: 'ID of the initiative to add the project to',
+      },
+      icon: {
+        type: 'string',
+        description: 'Icon emoji for the project (e.g., "🚀")',
+      },
+    },
+    required: ['name', 'teamIds', 'initiativeId'],
+  },
+  output_schema: {
+    type: 'object',
+    properties: {
+      id: { type: 'string' },
+      name: { type: 'string' },
+      url: { type: 'string' },
+      initiative: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+        },
+      },
+    },
+  },
+};
+
+/**
+ * Tool definition for bulk creating projects
+ */
+export const bulkCreateProjectsToolDefinition: MCPToolDefinition = {
+  name: 'linear_bulkCreateProjects',
+  description: 'Create multiple projects in one call',
+  input_schema: {
+    type: 'object',
+    properties: {
+      projects: {
+        type: 'array',
+        description: 'Array of project definitions to create',
+        items: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Name of the project',
+            },
+            description: {
+              type: 'string',
+              description: 'Short summary of the project',
+            },
+            teamIds: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'IDs of the teams this project belongs to',
+            },
+            icon: {
+              type: 'string',
+              description: 'Icon emoji for the project',
+            },
+            initiativeId: {
+              type: 'string',
+              description: 'ID of the initiative to add the project to',
+            },
+          },
+          required: ['name', 'teamIds'],
+        },
+      },
+    },
+    required: ['projects'],
+  },
+  output_schema: {
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        project: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            url: { type: 'string' },
+          },
+        },
+        error: { type: 'string' },
       },
     },
   },

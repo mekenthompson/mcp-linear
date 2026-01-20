@@ -75,9 +75,27 @@ export class LinearService {
     }));
   }
 
-  async getProjects() {
-    const projects = await this.client.projects();
-    return Promise.all(
+  async getProjects(args?: {
+    limit?: number;
+    cursor?: string;
+    teamId?: string;
+    includeArchived?: boolean;
+  }) {
+    const limit = args?.limit ?? 50;
+    const filter: { accessibleTeams?: { id: { eq: string } } } = {};
+
+    if (args?.teamId) {
+      filter.accessibleTeams = { id: { eq: args.teamId } };
+    }
+
+    const projects = await this.client.projects({
+      first: limit,
+      after: args?.cursor,
+      includeArchived: args?.includeArchived,
+      filter: Object.keys(filter).length > 0 ? filter : undefined,
+    });
+
+    const projectsList = await Promise.all(
       projects.nodes.map(async (project) => {
         // We need to fetch teams using the relationship
         const teams = await project.teams();
@@ -88,13 +106,23 @@ export class LinearService {
           description: project.description,
           content: project.content,
           state: project.state,
+          icon: project.icon,
           teams: teams.nodes.map((team) => ({
             id: team.id,
             name: team.name,
           })),
+          url: project.url,
         };
       }),
     );
+
+    return {
+      projects: projectsList,
+      pageInfo: {
+        hasNextPage: projects.pageInfo.hasNextPage,
+        endCursor: projects.pageInfo.endCursor,
+      },
+    };
   }
 
   async getIssues(limit = 25) {
@@ -538,6 +566,194 @@ export class LinearService {
     }
   }
 
+  async getProjectById(id: string) {
+    const project = await this.client.project(id);
+    if (!project) {
+      throw new Error(`Project with ID ${id} not found`);
+    }
+
+    const teams = await project.teams();
+    const teamsList = teams.nodes.map((team) => ({
+      id: team.id,
+      name: team.name,
+    }));
+
+    return {
+      id: project.id,
+      name: project.name,
+      description: project.description,
+      content: project.content,
+      state: project.state,
+      icon: project.icon,
+      teams: teamsList,
+      url: project.url,
+    };
+  }
+
+  async searchProjects(args: { query: string; teamId?: string; state?: string; limit?: number }) {
+    const limit = args.limit ?? 25;
+
+    // Fetch all projects with pagination to search through them
+    const projects = await this.client.projects({ first: 100 });
+    const queryLower = args.query.toLowerCase();
+
+    const matchingProjects = projects.nodes.filter((project) => {
+      // Filter by name
+      if (!project.name.toLowerCase().includes(queryLower)) {
+        return false;
+      }
+
+      // Filter by state if provided
+      if (args.state && project.state !== args.state) {
+        return false;
+      }
+
+      return true;
+    });
+
+    // Apply limit
+    const limitedProjects = matchingProjects.slice(0, limit);
+
+    // Filter by team if provided (need to fetch team data)
+    const results = await Promise.all(
+      limitedProjects.map(async (project) => {
+        if (args.teamId) {
+          const teams = await project.teams();
+          const hasTeam = teams.nodes.some((team) => team.id === args.teamId);
+          if (!hasTeam) {
+            return null;
+          }
+        }
+
+        return {
+          id: project.id,
+          name: project.name,
+          description: project.description,
+          state: project.state,
+          icon: project.icon,
+          url: project.url,
+        };
+      }),
+    );
+
+    return results.filter((p) => p !== null);
+  }
+
+  async getProjectByUrl(url: string) {
+    // Parse URL to extract project ID
+    // Linear project URLs are like: https://linear.app/workspace/project/project-name-uuid
+    const urlObj = new URL(url);
+    const pathParts = urlObj.pathname.split('/');
+
+    // Find the project slug (last meaningful path segment)
+    const projectSlug = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2];
+
+    if (!projectSlug) {
+      throw new Error('Invalid Linear project URL');
+    }
+
+    // Extract UUID from the slug (format: project-name-uuid)
+    // UUID is typically the last 36 characters or the part after the last dash that's a UUID
+    const uuidMatch = projectSlug.match(
+      /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i,
+    );
+
+    if (!uuidMatch) {
+      throw new Error('Could not extract project ID from URL');
+    }
+
+    const projectId = uuidMatch[1];
+    return this.getProjectById(projectId);
+  }
+
+  async createProjectWithInitiative(args: {
+    name: string;
+    description?: string;
+    teamIds: string[];
+    initiativeId: string;
+    icon?: string;
+  }) {
+    // Create the project
+    const project = await this.createProject({
+      name: args.name,
+      description: args.description,
+      teamIds: args.teamIds,
+      icon: args.icon,
+    });
+
+    // Add to initiative
+    const initiative = await this.client.initiative(args.initiativeId);
+    if (!initiative) {
+      throw new Error(`Initiative with ID ${args.initiativeId} not found`);
+    }
+
+    await this.client.createInitiativeToProject({
+      projectId: project.id,
+      initiativeId: args.initiativeId,
+    });
+
+    return {
+      id: project.id,
+      name: project.name,
+      url: project.url,
+      initiative: {
+        id: initiative.id,
+        name: initiative.name,
+      },
+    };
+  }
+
+  async bulkCreateProjects(
+    projects: Array<{
+      name: string;
+      description?: string;
+      teamIds: string[];
+      icon?: string;
+      initiativeId?: string;
+    }>,
+  ) {
+    const results = await Promise.all(
+      projects.map(async (projectDef) => {
+        try {
+          let result;
+          if (projectDef.initiativeId) {
+            result = await this.createProjectWithInitiative({
+              name: projectDef.name,
+              description: projectDef.description,
+              teamIds: projectDef.teamIds,
+              icon: projectDef.icon,
+              initiativeId: projectDef.initiativeId,
+            });
+          } else {
+            result = await this.createProject({
+              name: projectDef.name,
+              description: projectDef.description,
+              teamIds: projectDef.teamIds,
+              icon: projectDef.icon,
+            });
+          }
+
+          return {
+            success: true,
+            project: {
+              id: result.id,
+              name: result.name,
+              url: result.url,
+            },
+          };
+        } catch (error) {
+          return {
+            success: false,
+            project: null,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          };
+        }
+      }),
+    );
+
+    return results;
+  }
+
   async createProject(args: {
     name: string;
     description?: string;
@@ -564,7 +780,7 @@ export class LinearService {
       description: args.description,
       content: args.content,
       teamIds: teamIds,
-      state: args.state,
+      // Note: 'state' is deprecated, use statusId instead if needed
       startDate: args.startDate ? new Date(args.startDate) : undefined,
       targetDate: args.targetDate ? new Date(args.targetDate) : undefined,
       leadId: args.leadId,
@@ -960,7 +1176,7 @@ export class LinearService {
       // Create a new issue using the createIssue method of this service
       const newIssueData = await this.createIssue({
         title: `${issue.title} (Copy)`,
-        description: issue.description,
+        description: issue.description ?? undefined,
         teamId: teamData.id,
         // We'll have to implement getting these properties in a production environment
         // For now, we'll just create a basic copy with title and description
@@ -1096,6 +1312,7 @@ export class LinearService {
     targetDate?: string;
     leadId?: string;
     memberIds?: string[] | string;
+    labelIds?: string[];
     sortOrder?: number;
     icon?: string;
     color?: string;
@@ -1115,15 +1332,16 @@ export class LinearService {
         : undefined;
 
       // Update the project using client.updateProject
+      // Note: 'state' is deprecated in Linear API, use statusId instead
       const updatePayload = await this.client.updateProject(args.id, {
         name: args.name,
         description: args.description,
         content: args.content,
-        state: args.state as any,
         startDate: args.startDate ? new Date(args.startDate) : undefined,
         targetDate: args.targetDate ? new Date(args.targetDate) : undefined,
         leadId: args.leadId,
         memberIds: memberIds,
+        labelIds: args.labelIds,
         sortOrder: args.sortOrder,
         icon: args.icon,
         color: args.color,
@@ -1689,6 +1907,14 @@ export class LinearService {
           // Fetch owner data if available
           const ownerData = initiative.owner ? await initiative.owner : null;
 
+          // Fetch parent initiative if available
+          const parentData = initiative.parentInitiative
+            ? await initiative.parentInitiative
+            : null;
+
+          // Fetch sub-initiatives count
+          const subInitiatives = await initiative.subInitiatives({ first: 0 });
+
           return {
             id: initiative.id,
             name: initiative.name,
@@ -1706,6 +1932,13 @@ export class LinearService {
                   email: ownerData.email,
                 }
               : null,
+            parentInitiative: parentData
+              ? {
+                  id: parentData.id,
+                  name: parentData.name,
+                }
+              : null,
+            subInitiativesCount: subInitiatives.nodes.length,
             url: initiative.url,
           };
         }),
@@ -1722,7 +1955,11 @@ export class LinearService {
    * @param includeProjects Whether to include associated projects
    * @returns Initiative details with optional projects
    */
-  async getInitiativeById(id: string, includeProjects = true) {
+  async getInitiativeById(
+    id: string,
+    includeProjects = true,
+    includeSubInitiatives = true,
+  ) {
     try {
       const initiative = await this.client.initiative(id);
       if (!initiative) {
@@ -1731,6 +1968,11 @@ export class LinearService {
 
       // Fetch owner data if available
       const ownerData = initiative.owner ? await initiative.owner : null;
+
+      // Fetch parent initiative if available
+      const parentData = initiative.parentInitiative
+        ? await initiative.parentInitiative
+        : null;
 
       // Fetch associated projects if requested
       let projectsData = undefined;
@@ -1741,6 +1983,20 @@ export class LinearService {
             id: project.id,
             name: project.name,
             state: project.state,
+          })),
+        );
+      }
+
+      // Fetch sub-initiatives if requested
+      let subInitiativesData = undefined;
+      if (includeSubInitiatives) {
+        const subInitiatives = await initiative.subInitiatives();
+        subInitiativesData = await Promise.all(
+          subInitiatives.nodes.map(async (sub) => ({
+            id: sub.id,
+            name: sub.name,
+            status: sub.status,
+            icon: sub.icon,
           })),
         );
       }
@@ -1762,7 +2018,14 @@ export class LinearService {
               email: ownerData.email,
             }
           : null,
+        parentInitiative: parentData
+          ? {
+              id: parentData.id,
+              name: parentData.name,
+            }
+          : null,
         ...(includeProjects && { projects: projectsData }),
+        ...(includeSubInitiatives && { subInitiatives: subInitiativesData }),
         url: initiative.url,
       };
     } catch (error) {
@@ -1786,8 +2049,11 @@ export class LinearService {
     targetDate?: string;
     ownerId?: string;
     sortOrder?: number;
+    parentInitiativeId?: string;
   }) {
     try {
+      // Note: parentId for sub-initiatives may need to be set via initiativeToInitiative relation
+      // The Linear SDK v70 doesn't expose parentId directly on InitiativeCreateInput
       const createPayload = await this.client.createInitiative({
         name: args.name,
         description: args.description,
@@ -1798,15 +2064,25 @@ export class LinearService {
         targetDate: args.targetDate,
         ownerId: args.ownerId,
         sortOrder: args.sortOrder,
-      });
+      } as any);
 
       if (createPayload.success && createPayload.initiative) {
         const initiative = await createPayload.initiative;
+        const parentData = initiative.parentInitiative
+          ? await initiative.parentInitiative
+          : null;
+
         return {
           id: initiative.id,
           name: initiative.name,
           description: initiative.description,
           status: initiative.status,
+          parentInitiative: parentData
+            ? {
+                id: parentData.id,
+                name: parentData.name,
+              }
+            : null,
           url: initiative.url,
         };
       } else {
@@ -1836,9 +2112,11 @@ export class LinearService {
       targetDate?: string;
       ownerId?: string;
       sortOrder?: number;
+      parentInitiativeId?: string | null;
     },
   ) {
     try {
+      // Note: parentId may not be directly settable via SDK - use 'as any' for compatibility
       const updatePayload = await this.client.updateInitiative(initiativeId, {
         name: updateData.name,
         description: updateData.description,
@@ -1849,15 +2127,25 @@ export class LinearService {
         targetDate: updateData.targetDate,
         ownerId: updateData.ownerId,
         sortOrder: updateData.sortOrder,
-      });
+      } as any);
 
       if (updatePayload.success && updatePayload.initiative) {
         const initiative = await updatePayload.initiative;
+        const parentData = initiative.parentInitiative
+          ? await initiative.parentInitiative
+          : null;
+
         return {
           id: initiative.id,
           name: initiative.name,
           description: initiative.description,
           status: initiative.status,
+          parentInitiative: parentData
+            ? {
+                id: parentData.id,
+                name: parentData.name,
+              }
+            : null,
           url: initiative.url,
         };
       } else {
@@ -1865,6 +2153,53 @@ export class LinearService {
       }
     } catch (error) {
       console.error('Error updating initiative:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get sub-initiatives for a parent initiative
+   * @param parentId Parent initiative ID
+   * @param includeArchived Whether to include archived sub-initiatives
+   * @returns List of sub-initiatives
+   */
+  async getSubInitiatives(parentId: string, includeArchived = false) {
+    try {
+      const initiative = await this.client.initiative(parentId);
+      if (!initiative) {
+        throw new Error(`Initiative with ID ${parentId} not found`);
+      }
+
+      const subInitiatives = await initiative.subInitiatives({
+        includeArchived,
+      });
+
+      return Promise.all(
+        subInitiatives.nodes.map(async (sub) => {
+          const ownerData = sub.owner ? await sub.owner : null;
+          const subSubInitiatives = await sub.subInitiatives({ first: 0 });
+
+          return {
+            id: sub.id,
+            name: sub.name,
+            description: sub.description,
+            icon: sub.icon,
+            color: sub.color,
+            status: sub.status,
+            targetDate: sub.targetDate,
+            owner: ownerData
+              ? {
+                  id: ownerData.id,
+                  name: ownerData.name,
+                }
+              : null,
+            subInitiativesCount: subSubInitiatives.nodes.length,
+            url: sub.url,
+          };
+        }),
+      );
+    } catch (error) {
+      console.error('Error getting sub-initiatives:', error);
       throw error;
     }
   }

@@ -9,6 +9,7 @@ import {
   isGetInitiativeProjectsInput,
   isAddProjectToInitiativeInput,
   isRemoveProjectFromInitiativeInput,
+  isGetSubInitiativesInput,
 } from '../type-guards.js';
 
 export function getInitiativesHandler(linearService: LinearService) {
@@ -34,6 +35,7 @@ export function getInitiativeByIdHandler(linearService: LinearService) {
     const initiative = await linearService.getInitiativeById(
       args.initiativeId,
       args.includeProjects,
+      args.includeSubInitiatives,
     );
     console.log(`[getInitiativeById] Retrieved initiative: ${initiative.name}`);
     return initiative;
@@ -152,5 +154,21 @@ export function removeProjectFromInitiativeHandler(linearService: LinearService)
     );
     console.log(`[removeProjectFromInitiative] Project removed successfully`);
     return result;
+  };
+}
+
+export function getSubInitiativesHandler(linearService: LinearService) {
+  return async (args: unknown) => {
+    if (!isGetSubInitiativesInput(args)) {
+      throw new Error('Invalid input for getSubInitiatives');
+    }
+
+    console.log(`[getSubInitiatives] Fetching sub-initiatives for: ${args.initiativeId}`);
+    const subInitiatives = await linearService.getSubInitiatives(
+      args.initiativeId,
+      args.includeArchived,
+    );
+    console.log(`[getSubInitiatives] Retrieved ${subInitiatives.length} sub-initiatives`);
+    return subInitiatives;
   };
 }

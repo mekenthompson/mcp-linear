@@ -1,0 +1,399 @@
+{
+  "project": "MCP Linear",
+  "branchName": "ralph/enhanced-project-initiative-tools",
+  "description": "Enhance MCP Linear with comprehensive project and initiative management: labels, milestones, links/resources, customer needs, and expose missing fields",
+  "testTeamId": "1be78878-e938-47e0-b887-fbd1c85b9602",
+  "testTeamKey": "RDMP26",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Expose leadId and memberIds in createProject tool definition",
+      "description": "As a developer, I want to set project lead and members when creating a project.",
+      "acceptanceCriteria": [
+        "Add 'leadId' property (string, optional) to createProjectToolDefinition.input_schema.properties",
+        "Add 'memberIds' property (array of strings, optional) to createProjectToolDefinition.input_schema.properties",
+        "Update isCreateProjectArgs type guard to include optional leadId and memberIds",
+        "Update handleCreateProject to pass leadId and memberIds to service",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Expose leadId, memberIds, and labelIds in updateProject tool definition",
+      "description": "As a developer, I want to update project lead, members, and labels.",
+      "acceptanceCriteria": [
+        "Add 'leadId' property (string, optional) to updateProjectToolDefinition.input_schema.properties",
+        "Add 'memberIds' property (array of strings, optional) to updateProjectToolDefinition.input_schema.properties",
+        "Add 'labelIds' property (array of strings, optional) to updateProjectToolDefinition.input_schema.properties",
+        "Update isUpdateProjectArgs type guard to include these fields",
+        "Update handleUpdateProject to pass all fields to service",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Add labelIds to createProject tool and service",
+      "description": "As a developer, I want to assign project labels when creating a project.",
+      "acceptanceCriteria": [
+        "Add 'labelIds' property (array of strings, optional) to createProjectToolDefinition.input_schema.properties",
+        "Update isCreateProjectArgs type guard to include optional labelIds",
+        "Update LinearService.createProject to accept and pass labelIds to client.createProject()",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Update LinearService.updateProject to support labelIds",
+      "description": "As a developer, I need the service to pass labelIds when updating a project.",
+      "acceptanceCriteria": [
+        "Add labelIds to updateProject args interface in linear-service.ts",
+        "Pass labelIds to client.updateProject() call",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Add getProjectLabels tool definition",
+      "description": "As a developer, I want to list all project labels available in the workspace.",
+      "acceptanceCriteria": [
+        "Create getProjectLabelsToolDefinition in a new project-label-tools.ts file",
+        "Input schema: includeArchived (optional boolean)",
+        "Output schema: array of label objects with id, name, color, description, isGroup, parentId",
+        "Export from definitions/index.ts",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Add getProjectLabels service method",
+      "description": "As a developer, I need the service to fetch project labels.",
+      "acceptanceCriteria": [
+        "Add getProjectLabels method to LinearService",
+        "Method calls client.projectLabels() with optional includeArchived filter",
+        "Returns array with id, name, color, description, isGroup, parent (id/name if exists)",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Add getProjectLabels handler",
+      "description": "As a developer, I need the handler to wire up project labels listing.",
+      "acceptanceCriteria": [
+        "Create project-label-handlers.ts with handleGetProjectLabels function",
+        "Handler calls linearService.getProjectLabels()",
+        "Register handler in handlers/index.ts for linear_getProjectLabels",
+        "Add tool definition to allToolDefinitions array",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Add createProjectLabel tool definition and handler",
+      "description": "As a developer, I want to create project labels including label groups.",
+      "acceptanceCriteria": [
+        "Add createProjectLabelToolDefinition with name (required), color, description, isGroup, parentId",
+        "Add createProjectLabel method to LinearService calling client.createProjectLabel()",
+        "Add handleCreateProjectLabel handler",
+        "Register in handlers/index.ts",
+        "Typecheck passes"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Add updateProjectLabel tool definition and handler",
+      "description": "As a developer, I want to update existing project labels.",
+      "acceptanceCriteria": [
+        "Add updateProjectLabelToolDefinition with id (required), name, color, description",
+        "Add updateProjectLabel method to LinearService",
+        "Add handleUpdateProjectLabel handler",
+        "Register in handlers/index.ts",
+        "Typecheck passes"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Add getProjectMilestones tool definition",
+      "description": "As a developer, I want to list milestones for a project.",
+      "acceptanceCriteria": [
+        "Create milestone-tools.ts with getProjectMilestonesToolDefinition",
+        "Input schema: projectId (required string)",
+        "Output schema: array of milestone objects with id, name, description, targetDate, status, sortOrder",
+        "Export from definitions/index.ts",
+        "Typecheck passes"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "Add getProjectMilestones service method",
+      "description": "As a developer, I need the service to fetch milestones for a project.",
+      "acceptanceCriteria": [
+        "Add getProjectMilestones method to LinearService",
+        "Method fetches project, then retrieves projectMilestones connection",
+        "Returns array of milestone objects",
+        "Typecheck passes"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-012",
+      "title": "Add getProjectMilestones handler",
+      "description": "As a developer, I need the handler for milestone listing.",
+      "acceptanceCriteria": [
+        "Create milestone-handlers.ts with handleGetProjectMilestones",
+        "Register handler in handlers/index.ts for linear_getProjectMilestones",
+        "Typecheck passes"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-013",
+      "title": "Add createProjectMilestone tool and service",
+      "description": "As a developer, I want to create milestones on projects.",
+      "acceptanceCriteria": [
+        "Add createProjectMilestoneToolDefinition with projectId (required), name (required), description, targetDate, sortOrder",
+        "Add createProjectMilestone method to LinearService calling client.createProjectMilestone()",
+        "Add handleCreateProjectMilestone handler",
+        "Register in handlers/index.ts",
+        "Typecheck passes"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-014",
+      "title": "Add updateProjectMilestone tool and service",
+      "description": "As a developer, I want to update existing milestones.",
+      "acceptanceCriteria": [
+        "Add updateProjectMilestoneToolDefinition with id (required), name, description, targetDate, sortOrder",
+        "Add updateProjectMilestone method to LinearService",
+        "Add handleUpdateProjectMilestone handler",
+        "Register in handlers/index.ts",
+        "Typecheck passes"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-015",
+      "title": "Add addEntityLink tool for projects and initiatives",
+      "description": "As a developer, I want to add resource links to projects or initiatives.",
+      "acceptanceCriteria": [
+        "Create entity-link-tools.ts with addEntityLinkToolDefinition",
+        "Input schema: label (required), url (required), projectId OR initiativeId (one required), sortOrder (optional)",
+        "Add createEntityLink method to LinearService using entityExternalLinkCreate mutation",
+        "Add handleAddEntityLink handler",
+        "Register in handlers/index.ts",
+        "Typecheck passes"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-016",
+      "title": "Add getEntityLinks tool for projects and initiatives",
+      "description": "As a developer, I want to list resource links on a project or initiative.",
+      "acceptanceCriteria": [
+        "Add getEntityLinksToolDefinition with projectId OR initiativeId (one required)",
+        "Output: array of link objects with id, label, url, sortOrder",
+        "Add getEntityLinks method to LinearService",
+        "Add handleGetEntityLinks handler",
+        "Typecheck passes"
+      ],
+      "priority": 16,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-017",
+      "title": "Add deleteEntityLink tool",
+      "description": "As a developer, I want to remove resource links.",
+      "acceptanceCriteria": [
+        "Add deleteEntityLinkToolDefinition with id (required)",
+        "Add deleteEntityLink method to LinearService using entityExternalLinkDelete mutation",
+        "Add handleDeleteEntityLink handler",
+        "Typecheck passes"
+      ],
+      "priority": 17,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-018",
+      "title": "Add createProjectAttachment tool",
+      "description": "As a developer, I want to attach documents/files to projects.",
+      "acceptanceCriteria": [
+        "Create project-attachment-tools.ts with createProjectAttachmentToolDefinition",
+        "Input schema: projectId (required), title (required), url (required), subtitle, metadata",
+        "Add createProjectAttachment method to LinearService using projectAttachmentCreate mutation",
+        "Add handleCreateProjectAttachment handler",
+        "Register in handlers/index.ts",
+        "Typecheck passes"
+      ],
+      "priority": 18,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-019",
+      "title": "Add getProjectAttachments tool",
+      "description": "As a developer, I want to list attachments on a project.",
+      "acceptanceCriteria": [
+        "Add getProjectAttachmentsToolDefinition with projectId (required)",
+        "Output: array of attachment objects with id, title, subtitle, url, createdAt",
+        "Add getProjectAttachments method to LinearService",
+        "Add handleGetProjectAttachments handler",
+        "Typecheck passes"
+      ],
+      "priority": 19,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-020",
+      "title": "Add deleteProjectAttachment tool",
+      "description": "As a developer, I want to remove attachments from projects.",
+      "acceptanceCriteria": [
+        "Add deleteProjectAttachmentToolDefinition with id (required)",
+        "Add deleteProjectAttachment method to LinearService",
+        "Add handleDeleteProjectAttachment handler",
+        "Typecheck passes"
+      ],
+      "priority": 20,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-021",
+      "title": "Add createCustomerNeed tool",
+      "description": "As a developer, I want to link customer requests to issues or projects.",
+      "acceptanceCriteria": [
+        "Create customer-need-tools.ts with createCustomerNeedToolDefinition",
+        "Input schema: body (optional), customerId OR customerExternalId (optional), issueId (optional), projectId (optional), priority (optional 0|1), attachmentUrl (optional)",
+        "Add createCustomerNeed method to LinearService using customerNeedCreate mutation",
+        "Add handleCreateCustomerNeed handler",
+        "Register in handlers/index.ts",
+        "Typecheck passes"
+      ],
+      "priority": 21,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-022",
+      "title": "Add getCustomerNeeds tool",
+      "description": "As a developer, I want to query customer needs for issues or projects.",
+      "acceptanceCriteria": [
+        "Add getCustomerNeedsToolDefinition with issueId OR projectId (optional filters), limit (optional)",
+        "Output: array of customer need objects with id, body, priority, customer info, issue/project info",
+        "Add getCustomerNeeds method to LinearService",
+        "Add handleGetCustomerNeeds handler",
+        "Typecheck passes"
+      ],
+      "priority": 22,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-023",
+      "title": "Create integration tests for project tools",
+      "description": "As a developer, I want integration tests that verify project tools work against Linear API.",
+      "acceptanceCriteria": [
+        "Create src/__tests__/integration/project.integration.test.ts",
+        "Test creates a project with leadId, memberIds, labelIds in team RDMP26",
+        "Test updates the project with new values",
+        "Test fetches project and verifies all fields returned",
+        "Test cleans up by archiving or deleting created project",
+        "Tests pass when LINEAR_API_KEY env var is set",
+        "Tests skip gracefully when LINEAR_API_KEY not set"
+      ],
+      "priority": 23,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-024",
+      "title": "Create integration tests for milestone tools",
+      "description": "As a developer, I want integration tests for milestone CRUD operations.",
+      "acceptanceCriteria": [
+        "Create src/__tests__/integration/milestone.integration.test.ts",
+        "Test creates a project, then creates a milestone on it",
+        "Test updates the milestone",
+        "Test lists milestones and verifies created milestone exists",
+        "Test cleans up created resources",
+        "Tests pass when LINEAR_API_KEY env var is set"
+      ],
+      "priority": 24,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-025",
+      "title": "Create integration tests for entity links and attachments",
+      "description": "As a developer, I want integration tests for links and attachments.",
+      "acceptanceCriteria": [
+        "Create src/__tests__/integration/links-attachments.integration.test.ts",
+        "Test creates a project, adds an entity link, lists links, deletes link",
+        "Test creates a project attachment, lists attachments, deletes attachment",
+        "Test cleans up created resources",
+        "Tests pass when LINEAR_API_KEY env var is set"
+      ],
+      "priority": 25,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-026",
+      "title": "Update TOOLS.md with all new tools",
+      "description": "As a developer, I need updated documentation for all new tools.",
+      "acceptanceCriteria": [
+        "Add Project Labels section with getProjectLabels, createProjectLabel, updateProjectLabel",
+        "Add Milestones section with getProjectMilestones, createProjectMilestone, updateProjectMilestone",
+        "Add Entity Links section with addEntityLink, getEntityLinks, deleteEntityLink",
+        "Add Project Attachments section with createProjectAttachment, getProjectAttachments, deleteProjectAttachment",
+        "Add Customer Needs section with createCustomerNeed, getCustomerNeeds",
+        "Update Project Tools to note leadId, memberIds, labelIds support",
+        "Mark all tools as Implemented"
+      ],
+      "priority": 26,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

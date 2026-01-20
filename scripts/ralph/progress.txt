@@ -1,0 +1,35 @@
+# Ralph Progress Log
+# Feature: Enhanced Project and Initiative Tools
+# Branch: ralph/enhanced-project-initiative-tools
+
+## Codebase Patterns
+- createProject/updateProject service methods already accept leadId, memberIds - pass labelIds as `labelIds` (not `projectLabelIds`)
+- Type guards in type-guards.ts define the TypeScript interface for tool arguments
+- Tool definitions in definitions/*.ts define the JSON schema for MCP tools
+- Handlers simply pass args to service methods (no need to extract individual fields)
+- Linear SDK uses `labelIds` for project labels in both create and update
+
+---
+
+## 2026-01-20 - US-001
+Thread: https://ampcode.com/threads/T-019bd8e8-5232-7333-8d04-513c52035e7d
+- Already implemented - leadId, memberIds, labelIds already in createProjectToolDefinition
+- Type guard isCreateProjectArgs already included these fields
+- Handler passes full args object to service
+- **Learnings:** Check existing implementation before starting work - PRD was already partially implemented
+---
+
+## 2026-01-20 - US-002
+Thread: https://ampcode.com/threads/T-019bd8e8-5232-7333-8d04-513c52035e7d
+- Added leadId, memberIds, labelIds to updateProjectToolDefinition input_schema
+- Updated isUpdateProjectArgs type guard to include these fields
+- Updated LinearService.updateProject to accept and pass labelIds to client
+- Files changed:
+  - src/tools/definitions/project-tools.ts
+  - src/tools/type-guards.ts  
+  - src/services/linear-service.ts
+- **Learnings:**
+  - Linear SDK ProjectUpdateInput uses `labelIds` not `projectLabelIds`
+  - Always check the SDK types (index.d.cts) to confirm correct field names
+---
+

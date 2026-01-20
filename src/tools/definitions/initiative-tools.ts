@@ -41,6 +41,14 @@ export const initiativeToolDefinitions: MCPToolDefinition[] = [
               email: { type: 'string' },
             },
           },
+          parentInitiative: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+            },
+          },
+          subInitiativesCount: { type: 'number' },
           url: { type: 'string' },
         },
       },
@@ -59,6 +67,11 @@ export const initiativeToolDefinitions: MCPToolDefinition[] = [
         includeProjects: {
           type: 'boolean',
           description: 'Include associated projects in the response',
+          default: true,
+        },
+        includeSubInitiatives: {
+          type: 'boolean',
+          description: 'Include sub-initiatives in the response',
           default: true,
         },
       },
@@ -84,6 +97,13 @@ export const initiativeToolDefinitions: MCPToolDefinition[] = [
             email: { type: 'string' },
           },
         },
+        parentInitiative: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+          },
+        },
         projects: {
           type: 'array',
           items: {
@@ -92,6 +112,18 @@ export const initiativeToolDefinitions: MCPToolDefinition[] = [
               id: { type: 'string' },
               name: { type: 'string' },
               state: { type: 'string' },
+            },
+          },
+        },
+        subInitiatives: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+              status: { type: 'string' },
+              icon: { type: 'string' },
             },
           },
         },
@@ -138,6 +170,10 @@ export const initiativeToolDefinitions: MCPToolDefinition[] = [
           type: 'string',
           description: 'Color of the initiative in hex format',
         },
+        parentInitiativeId: {
+          type: 'string',
+          description: 'ID of the parent initiative (for creating sub-initiatives)',
+        },
       },
       required: ['name'],
     },
@@ -148,6 +184,13 @@ export const initiativeToolDefinitions: MCPToolDefinition[] = [
         name: { type: 'string' },
         description: { type: 'string' },
         status: { type: 'string' },
+        parentInitiative: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+          },
+        },
         url: { type: 'string' },
       },
     },
@@ -195,6 +238,10 @@ export const initiativeToolDefinitions: MCPToolDefinition[] = [
           type: 'string',
           description: 'Updated color in hex format',
         },
+        parentInitiativeId: {
+          type: 'string',
+          description: 'ID of the parent initiative (set to null to make top-level)',
+        },
       },
       required: ['initiativeId'],
     },
@@ -205,7 +252,57 @@ export const initiativeToolDefinitions: MCPToolDefinition[] = [
         name: { type: 'string' },
         description: { type: 'string' },
         status: { type: 'string' },
+        parentInitiative: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+          },
+        },
         url: { type: 'string' },
+      },
+    },
+  },
+  {
+    name: 'linear_getSubInitiatives',
+    description: 'Get all sub-initiatives for a parent initiative',
+    input_schema: {
+      type: 'object',
+      properties: {
+        initiativeId: {
+          type: 'string',
+          description: 'The ID of the parent initiative',
+        },
+        includeArchived: {
+          type: 'boolean',
+          description: 'Include archived sub-initiatives',
+          default: false,
+        },
+      },
+      required: ['initiativeId'],
+    },
+    output_schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          description: { type: 'string' },
+          icon: { type: 'string' },
+          color: { type: 'string' },
+          status: { type: 'string' },
+          targetDate: { type: 'string' },
+          owner: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+            },
+          },
+          subInitiativesCount: { type: 'number' },
+          url: { type: 'string' },
+        },
       },
     },
   },

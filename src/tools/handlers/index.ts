@@ -23,11 +23,16 @@ import {
 } from './issue-handlers.js';
 import {
   handleGetProjects,
+  handleGetProjectById,
   handleCreateProject,
   // Project Management handlers
   handleUpdateProject,
   handleAddIssueToProject,
   handleGetProjectIssues,
+  handleSearchProjects,
+  handleGetProjectByUrl,
+  handleCreateProjectWithInitiative,
+  handleBulkCreateProjects,
 } from './project-handlers.js';
 import { handleGetTeams, handleGetWorkflowStates } from './team-handlers.js';
 import {
@@ -54,6 +59,7 @@ import {
   getInitiativeProjectsHandler,
   addProjectToInitiativeHandler,
   removeProjectFromInitiativeHandler,
+  getSubInitiativesHandler,
 } from './initiative-handlers.js';
 
 /**
@@ -75,12 +81,17 @@ export function registerToolHandlers(linearService: LinearService) {
 
     // Project tools
     linear_getProjects: handleGetProjects(linearService),
+    linear_getProjectById: handleGetProjectById(linearService),
     linear_createProject: handleCreateProject(linearService),
 
     // Project Management tools
     linear_updateProject: handleUpdateProject(linearService),
     linear_addIssueToProject: handleAddIssueToProject(linearService),
     linear_getProjectIssues: handleGetProjectIssues(linearService),
+    linear_searchProjects: handleSearchProjects(linearService),
+    linear_getProjectByUrl: handleGetProjectByUrl(linearService),
+    linear_createProjectWithInitiative: handleCreateProjectWithInitiative(linearService),
+    linear_bulkCreateProjects: handleBulkCreateProjects(linearService),
 
     // Cycle Management tools
     linear_getCycles: handleGetCycles(linearService),
@@ -98,6 +109,7 @@ export function registerToolHandlers(linearService: LinearService) {
     linear_getInitiativeProjects: getInitiativeProjectsHandler(linearService),
     linear_addProjectToInitiative: addProjectToInitiativeHandler(linearService),
     linear_removeProjectFromInitiative: removeProjectFromInitiativeHandler(linearService),
+    linear_getSubInitiatives: getSubInitiativesHandler(linearService),
 
     // Issue tools
     linear_getIssues: handleGetIssues(linearService),
@@ -136,6 +148,7 @@ export {
   handleAddIssueLabel,
   handleRemoveIssueLabel,
   handleGetProjects,
+  handleGetProjectById,
   handleCreateProject,
   handleGetTeams,
   handleGetWorkflowStates,
@@ -162,6 +175,10 @@ export {
   handleUpdateProject,
   handleAddIssueToProject,
   handleGetProjectIssues,
+  handleSearchProjects,
+  handleGetProjectByUrl,
+  handleCreateProjectWithInitiative,
+  handleBulkCreateProjects,
 
   // Cycle Management handlers
   handleGetCycles,
@@ -179,4 +196,5 @@ export {
   getInitiativeProjectsHandler,
   addProjectToInitiativeHandler,
   removeProjectFromInitiativeHandler,
+  getSubInitiativesHandler,
 };

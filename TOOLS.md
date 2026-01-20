@@ -23,10 +23,11 @@ The following tools are currently implemented and available in the MCP Linear:
 
 ### Project Tools
 
-| Tool Name              | Description                        | Status         |
-| ---------------------- | ---------------------------------- | -------------- |
-| `linear_getProjects`   | Get a list of projects from Linear | ✅ Implemented |
-| `linear_createProject` | Create a new project in Linear     | ✅ Implemented |
+| Tool Name              | Description                                                         | Status         |
+| ---------------------- | ------------------------------------------------------------------- | -------------- |
+| `linear_getProjects`   | Get a list of projects with pagination and filtering                | ✅ Implemented |
+| `linear_getProjectById`| Get a specific project by ID                                        | ✅ Implemented |
+| `linear_createProject` | Create a new project in Linear (supports icon)                      | ✅ Implemented |
 
 ### Issue Tools
 
@@ -63,11 +64,15 @@ The following tools are currently implemented and available in the MCP Linear:
 
 ### Project Management Tools
 
-| Tool Name                  | Description                              | Status         |
-| -------------------------- | ---------------------------------------- | -------------- |
-| `linear_updateProject`     | Update an existing project               | ✅ Implemented |
-| `linear_addIssueToProject` | Add an existing issue to a project       | ✅ Implemented |
-| `linear_getProjectIssues`  | Get all issues associated with a project | ✅ Implemented |
+| Tool Name                             | Description                                           | Status         |
+| ------------------------------------- | ----------------------------------------------------- | -------------- |
+| `linear_updateProject`                | Update an existing project (supports icon)            | ✅ Implemented |
+| `linear_addIssueToProject`            | Add an existing issue to a project                    | ✅ Implemented |
+| `linear_getProjectIssues`             | Get all issues associated with a project              | ✅ Implemented |
+| `linear_searchProjects`               | Search for projects by name                           | ✅ Implemented |
+| `linear_getProjectByUrl`              | Get a project by its Linear URL                       | ✅ Implemented |
+| `linear_createProjectWithInitiative`  | Create a project and add it to an initiative          | ✅ Implemented |
+| `linear_bulkCreateProjects`           | Create multiple projects in one call                  | ✅ Implemented |
 
 ### Cycle Management Tools
 

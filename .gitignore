@@ -36,3 +36,6 @@ yarn-error.log*
 # Temporary files
 /tmp
 ____*
+
+# Ralph autonomous agent
+/ralph
