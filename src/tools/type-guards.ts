@@ -531,11 +531,12 @@ export function isUpdateProjectArgs(args: unknown): args is {
   name?: string;
   description?: string;
   content?: string;
-  state?: string;
+  statusId?: string;
   icon?: string;
   leadId?: string;
   memberIds?: string[];
   labelIds?: string[];
+  teamIds?: string[];
 } {
   return (
     typeof args === 'object' &&
@@ -546,11 +547,12 @@ export function isUpdateProjectArgs(args: unknown): args is {
     (!('description' in args) ||
       typeof (args as { description: string }).description === 'string') &&
     (!('content' in args) || typeof (args as { content: string }).content === 'string') &&
-    (!('state' in args) || typeof (args as { state: string }).state === 'string') &&
+    (!('statusId' in args) || typeof (args as { statusId: string }).statusId === 'string') &&
     (!('icon' in args) || typeof (args as { icon: string }).icon === 'string') &&
     (!('leadId' in args) || typeof (args as { leadId: string }).leadId === 'string') &&
     (!('memberIds' in args) || Array.isArray((args as { memberIds: string[] }).memberIds)) &&
-    (!('labelIds' in args) || Array.isArray((args as { labelIds: string[] }).labelIds))
+    (!('labelIds' in args) || Array.isArray((args as { labelIds: string[] }).labelIds)) &&
+    (!('teamIds' in args) || Array.isArray((args as { teamIds: string[] }).teamIds))
   );
 }
 

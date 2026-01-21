@@ -192,3 +192,17 @@ export function handleBulkCreateProjects(linearService: LinearService) {
     }
   };
 }
+
+/**
+ * Handler for getting project statuses
+ */
+export function handleGetProjectStatuses(linearService: LinearService) {
+  return async () => {
+    try {
+      return await linearService.getProjectStatuses();
+    } catch (error) {
+      logError('Error getting project statuses', error);
+      throw error;
+    }
+  };
+}

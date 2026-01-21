@@ -75,6 +75,18 @@ export class LinearService {
     }));
   }
 
+  async getProjectStatuses() {
+    const statuses = await this.client.projectStatuses();
+    return statuses.nodes.map((status) => ({
+      id: status.id,
+      name: status.name,
+      description: status.description,
+      color: status.color,
+      type: status.type,
+      position: status.position,
+    }));
+  }
+
   async getProjects(args?: {
     limit?: number;
     cursor?: string;
@@ -1309,12 +1321,13 @@ export class LinearService {
     name?: string;
     description?: string;
     content?: string;
-    state?: string;
+    statusId?: string;
     startDate?: string;
     targetDate?: string;
     leadId?: string;
     memberIds?: string[] | string;
     labelIds?: string[];
+    teamIds?: string[] | string;
     sortOrder?: number;
     icon?: string;
     color?: string;
@@ -1333,17 +1346,25 @@ export class LinearService {
           : [args.memberIds]
         : undefined;
 
+      // Process team IDs if provided
+      const teamIds = args.teamIds
+        ? Array.isArray(args.teamIds)
+          ? args.teamIds
+          : [args.teamIds]
+        : undefined;
+
       // Update the project using client.updateProject
-      // Note: 'state' is deprecated in Linear API, use statusId instead
       const updatePayload = await this.client.updateProject(args.id, {
         name: args.name,
         description: args.description,
         content: args.content,
+        statusId: args.statusId,
         startDate: args.startDate ? new Date(args.startDate) : undefined,
         targetDate: args.targetDate ? new Date(args.targetDate) : undefined,
         leadId: args.leadId,
         memberIds: memberIds,
         labelIds: args.labelIds,
+        teamIds: teamIds,
         sortOrder: args.sortOrder,
         icon: args.icon,
         color: args.color,

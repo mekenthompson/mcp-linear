@@ -33,6 +33,7 @@ import {
   getProjectByUrlToolDefinition,
   createProjectWithInitiativeToolDefinition,
   bulkCreateProjectsToolDefinition,
+  getProjectStatusesToolDefinition,
 } from './project-tools.js';
 import { getTeamsToolDefinition, getWorkflowStatesToolDefinition } from './team-tools.js';
 import {
@@ -98,6 +99,7 @@ export const allToolDefinitions: MCPToolDefinition[] = [
   getProjectByUrlToolDefinition,
   createProjectWithInitiativeToolDefinition,
   bulkCreateProjectsToolDefinition,
+  getProjectStatusesToolDefinition,
 
   // Cycle Management tools
   getCyclesToolDefinition,
@@ -198,6 +200,7 @@ export {
   getProjectByUrlToolDefinition,
   createProjectWithInitiativeToolDefinition,
   bulkCreateProjectsToolDefinition,
+  getProjectStatusesToolDefinition,
 
   // Cycle Management tools
   getCyclesToolDefinition,

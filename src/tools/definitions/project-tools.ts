@@ -160,10 +160,10 @@ export const updateProjectToolDefinition: MCPToolDefinition = {
         type: 'string',
         description: 'New content of the project (Markdown supported)',
       },
-      state: {
+      statusId: {
         type: 'string',
         description:
-          "New state of the project (e.g., 'planned', 'started', 'paused', 'completed', 'canceled')",
+          'ID of the project status to set. Use linear_getProjectStatuses to get available status IDs.',
       },
       icon: {
         type: 'string',
@@ -182,6 +182,11 @@ export const updateProjectToolDefinition: MCPToolDefinition = {
         type: 'array',
         items: { type: 'string' },
         description: 'The identifiers of the project labels to attach',
+      },
+      teamIds: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'The identifiers of the teams this project belongs to (replaces existing teams)',
       },
     },
     required: ['id'],
@@ -513,6 +518,34 @@ export const bulkCreateProjectsToolDefinition: MCPToolDefinition = {
           },
         },
         error: { type: 'string' },
+      },
+    },
+  },
+};
+
+/**
+ * Tool definition for getting project statuses
+ */
+export const getProjectStatusesToolDefinition: MCPToolDefinition = {
+  name: 'linear_getProjectStatuses',
+  description:
+    'Get all available project statuses in the workspace. Returns status IDs that can be used with linear_updateProject to change a project status.',
+  input_schema: {
+    type: 'object',
+    properties: {},
+    required: [],
+  },
+  output_schema: {
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        name: { type: 'string' },
+        description: { type: 'string' },
+        color: { type: 'string' },
+        type: { type: 'string' },
+        position: { type: 'number' },
       },
     },
   },
