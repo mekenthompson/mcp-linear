@@ -34,6 +34,7 @@ import {
   handleCreateProjectWithInitiative,
   handleBulkCreateProjects,
   handleGetProjectStatuses,
+  handleGetStaleProjects,
 } from './project-handlers.js';
 import { handleGetTeams, handleGetWorkflowStates } from './team-handlers.js';
 import {
@@ -119,6 +120,7 @@ export function registerToolHandlers(linearService: LinearService) {
     linear_createProjectWithInitiative: handleCreateProjectWithInitiative(linearService),
     linear_bulkCreateProjects: handleBulkCreateProjects(linearService),
     linear_getProjectStatuses: handleGetProjectStatuses(linearService),
+    linear_getStaleProjects: handleGetStaleProjects(linearService),
 
     // Cycle Management tools
     linear_getCycles: handleGetCycles(linearService),
@@ -231,6 +233,7 @@ export {
   handleGetProjectByUrl,
   handleCreateProjectWithInitiative,
   handleBulkCreateProjects,
+  handleGetStaleProjects,
 
   // Cycle Management handlers
   handleGetCycles,

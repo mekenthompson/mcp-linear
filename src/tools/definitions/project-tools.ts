@@ -550,3 +550,106 @@ export const getProjectStatusesToolDefinition: MCPToolDefinition = {
     },
   },
 };
+
+/**
+ * Tool definition for finding stale projects
+ */
+export const getStaleProjectsToolDefinition: MCPToolDefinition = {
+  name: 'linear_getStaleProjects',
+  description:
+    'Find stale projects in Linear. A stale project is defined as having no assigned initiative AND no issue updates within the specified number of months. Returns projects grouped by staleness reason.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      stalenessMonths: {
+        type: 'number',
+        description: 'Number of months without activity to consider a project stale (default: 6)',
+      },
+      includeArchived: {
+        type: 'boolean',
+        description: 'Include archived projects in the analysis (default: false)',
+      },
+      noInitiativeOnly: {
+        type: 'boolean',
+        description:
+          'If true, only return projects without an initiative (skip expensive issue activity checks). Much faster than full staleness analysis. (default: false)',
+      },
+      limit: {
+        type: 'number',
+        description:
+          'Maximum number of projects to analyze. Use to prevent timeouts on large workspaces. (default: no limit)',
+      },
+    },
+    required: [],
+  },
+  output_schema: {
+    type: 'object',
+    properties: {
+      staleProjects: {
+        type: 'array',
+        description: 'Projects that are stale',
+        items: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            state: { type: 'string' },
+            teamName: { type: 'string' },
+            url: { type: 'string' },
+            reason: {
+              type: 'string',
+              description: 'Reason for staleness: "no_issues" or "all_issues_stale"',
+            },
+            lastActivity: {
+              type: 'string',
+              description: 'ISO date of last activity (project update or issue update)',
+            },
+          },
+        },
+      },
+      activeProjects: {
+        type: 'array',
+        description: 'Projects without initiative but with recent activity',
+        items: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            state: { type: 'string' },
+            teamName: { type: 'string' },
+            url: { type: 'string' },
+            lastActivity: { type: 'string' },
+          },
+        },
+      },
+      skippedProjects: {
+        type: 'array',
+        description: 'Projects that could not be analyzed due to errors',
+        items: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            error: { type: 'string' },
+          },
+        },
+      },
+      summary: {
+        type: 'object',
+        properties: {
+          totalProjectsAnalyzed: { type: 'number' },
+          recentlyUpdatedCount: {
+            type: 'number',
+            description: 'Projects skipped because they were recently updated (not stale candidates)',
+          },
+          projectsWithInitiative: { type: 'number' },
+          projectsWithoutInitiative: { type: 'number' },
+          staleCount: { type: 'number' },
+          activeCount: { type: 'number' },
+          skippedCount: { type: 'number' },
+          stalenessCutoffDate: { type: 'string' },
+        },
+      },
+    },
+  },
+};

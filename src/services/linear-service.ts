@@ -8,6 +8,16 @@ export class LinearService {
     this.client = client;
   }
 
+  /**
+   * Execute a raw GraphQL query against the Linear API.
+   * Useful for optimizing queries that would otherwise cause N+1 problems.
+   */
+  private async gql<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
+    // LinearClient wraps a GraphQL client internally
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return await (this.client as any)._client.rawRequest(query, variables).then((r: any) => r.data);
+  }
+
   async getUserInfo() {
     const viewer = await this.client.viewer;
     return {
@@ -124,6 +134,8 @@ export class LinearService {
             name: team.name,
           })),
           url: project.url,
+          updatedAt: project.updatedAt,
+          createdAt: project.createdAt,
         };
       }),
     );
@@ -141,15 +153,17 @@ export class LinearService {
     const issues = await this.client.issues({ first: limit });
     return Promise.all(
       issues.nodes.map(async (issue) => {
-        // For relations, we need to fetch the objects
-        const teamData = issue.team ? await issue.team : null;
-        const assigneeData = issue.assignee ? await issue.assignee : null;
-        const projectData = issue.project ? await issue.project : null;
-        const cycleData = issue.cycle ? await issue.cycle : null;
-        const parentData = issue.parent ? await issue.parent : null;
+        // OPTIMIZATION: Fetch all relations in parallel instead of sequentially
+        const [teamData, assigneeData, projectData, cycleData, parentData, labels] =
+          await Promise.all([
+            issue.team ? issue.team : Promise.resolve(null),
+            issue.assignee ? issue.assignee : Promise.resolve(null),
+            issue.project ? issue.project : Promise.resolve(null),
+            issue.cycle ? issue.cycle : Promise.resolve(null),
+            issue.parent ? issue.parent : Promise.resolve(null),
+            issue.labels(),
+          ]);
 
-        // Get labels
-        const labels = await issue.labels();
         const labelsList = labels.nodes.map((label) => ({
           id: label.id,
           name: label.name,
@@ -211,15 +225,19 @@ export class LinearService {
       throw new Error(`Issue with ID ${id} not found`);
     }
 
-    // For relations, we need to fetch the objects
-    const teamData = issue.team ? await issue.team : null;
-    const assigneeData = issue.assignee ? await issue.assignee : null;
-    const projectData = issue.project ? await issue.project : null;
-    const cycleData = issue.cycle ? await issue.cycle : null;
-    const parentData = issue.parent ? await issue.parent : null;
+    // OPTIMIZATION: Fetch all relations in parallel instead of sequentially
+    const [teamData, assigneeData, projectData, cycleData, parentData, comments, labels] =
+      await Promise.all([
+        issue.team ? issue.team : Promise.resolve(null),
+        issue.assignee ? issue.assignee : Promise.resolve(null),
+        issue.project ? issue.project : Promise.resolve(null),
+        issue.cycle ? issue.cycle : Promise.resolve(null),
+        issue.parent ? issue.parent : Promise.resolve(null),
+        issue.comments(),
+        issue.labels(),
+      ]);
 
-    // Get comments
-    const comments = await issue.comments();
+    // Process comments - user fetches are already in parallel via Promise.all wrapper
     const commentsList = await Promise.all(
       comments.nodes.map(async (comment) => {
         const userData = comment.user ? await comment.user : null;
@@ -238,8 +256,6 @@ export class LinearService {
       }),
     );
 
-    // Get labels
-    const labels = await issue.labels();
     const labelsList = labels.nodes.map((label) => ({
       id: label.id,
       name: label.name,
@@ -1964,16 +1980,12 @@ export class LinearService {
       });
       return Promise.all(
         initiatives.nodes.map(async (initiative) => {
-          // Fetch owner data if available
-          const ownerData = initiative.owner ? await initiative.owner : null;
-
-          // Fetch parent initiative if available
-          const parentData = initiative.parentInitiative
-            ? await initiative.parentInitiative
-            : null;
-
-          // Fetch sub-initiatives count
-          const subInitiatives = await initiative.subInitiatives({ first: 1 });
+          // OPTIMIZATION: Fetch all relations in parallel instead of sequentially
+          const [ownerData, parentData, subInitiatives] = await Promise.all([
+            initiative.owner ? initiative.owner : Promise.resolve(null),
+            initiative.parentInitiative ? initiative.parentInitiative : Promise.resolve(null),
+            initiative.subInitiatives({ first: 1 }),
+          ]);
 
           return {
             id: initiative.id,
@@ -1998,7 +2010,7 @@ export class LinearService {
                   name: parentData.name,
                 }
               : null,
-            subInitiativesCount: subInitiatives.nodes.length,
+            hasSubInitiatives: subInitiatives.nodes.length > 0,
             url: initiative.url,
           };
         }),
@@ -2463,12 +2475,12 @@ export class LinearService {
       }
 
       // Query for InitiativeToProject relationships
-      // Note: The API doesn't support filtering by initiative/project, so we need to search through all
+      // OPTIMIZATION: Paginate through initiativeToProjects but only fetch nested objects
+      // when we find a potential match (initiative ID matches)
       let targetRelationId: string | null = null;
       let hasMore = true;
       let cursor: string | undefined = undefined;
-      
-      // Paginate through all InitiativeToProject relationships to find the one we need
+
       while (hasMore && !targetRelationId) {
         const initiativeToProjects = await this.client.initiativeToProjects({
           first: 100,
@@ -2476,17 +2488,24 @@ export class LinearService {
           includeArchived: false,
         });
 
-        // Search through this page of results
-        for (const relation of initiativeToProjects.nodes) {
-          const relInitiative = await relation.initiative;
-          const relProject = await relation.project;
-          if (relInitiative?.id === initiativeId && relProject?.id === projectId) {
-            targetRelationId = relation.id;
-            break;
-          }
-        }
+        // Process relations in parallel to check if they match
+        const matchResults = await Promise.all(
+          initiativeToProjects.nodes.map(async (relation) => {
+            // Fetch both in parallel
+            const [relInitiative, relProject] = await Promise.all([
+              relation.initiative,
+              relation.project,
+            ]);
+            if (relInitiative?.id === initiativeId && relProject?.id === projectId) {
+              return relation.id;
+            }
+            return null;
+          }),
+        );
 
-        // Check if there are more pages
+        // Find the first match
+        targetRelationId = matchResults.find((id) => id !== null) || null;
+
         hasMore = initiativeToProjects.pageInfo.hasNextPage;
         cursor = initiativeToProjects.pageInfo.endCursor || undefined;
       }
@@ -3041,6 +3060,259 @@ export class LinearService {
       };
     } catch (error) {
       console.error('Error deleting project attachment:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Find stale projects in Linear
+   * A stale project is defined as having no assigned initiative AND
+   * no issue updates within the specified number of months.
+   *
+   * @param args.stalenessMonths Number of months without activity (default: 6)
+   * @param args.includeArchived Include archived projects (default: false)
+   * @returns Object containing stale projects, active projects, and summary
+   */
+  async getStaleProjects(
+    args: {
+      stalenessMonths?: number;
+      includeArchived?: boolean;
+      noInitiativeOnly?: boolean;
+      limit?: number;
+    } = {},
+  ) {
+    try {
+      const stalenessMonths = args.stalenessMonths ?? 6;
+      const includeArchived = args.includeArchived ?? false;
+      const noInitiativeOnly = args.noInitiativeOnly ?? false;
+      const limit = args.limit;
+
+      // Calculate staleness cutoff date
+      const cutoffDate = new Date();
+      cutoffDate.setMonth(cutoffDate.getMonth() - stalenessMonths);
+      const cutoffDateISO = cutoffDate.toISOString();
+
+      // GraphQL query to fetch projects with initiatives and teams inline (avoids N+1 problem)
+      const PROJECTS_WITH_INITIATIVES_QUERY = `
+        query ProjectsWithInitiatives($first: Int!, $after: String, $includeArchived: Boolean) {
+          projects(first: $first, after: $after, includeArchived: $includeArchived) {
+            nodes {
+              id
+              name
+              state
+              url
+              updatedAt
+              initiatives(first: 1) { nodes { id } }
+              teams(first: 1) { nodes { name } }
+            }
+            pageInfo { hasNextPage endCursor }
+          }
+        }
+      `;
+
+      interface ProjectsQueryResult {
+        projects: {
+          nodes: Array<{
+            id: string;
+            name: string;
+            state: string;
+            url: string;
+            updatedAt: string;
+            initiatives: { nodes: Array<{ id: string }> };
+            teams: { nodes: Array<{ name: string }> };
+          }>;
+          pageInfo: { hasNextPage: boolean; endCursor: string | null };
+        };
+      }
+
+      // Step 1: Get all projects with initiatives/teams inline (single query per page)
+      const allProjects: Array<{
+        id: string;
+        name: string;
+        state: string;
+        teamName: string;
+        url: string;
+        updatedAt: Date;
+        hasInitiative: boolean;
+        isRecentlyUpdated: boolean;
+      }> = [];
+
+      let hasNextPage = true;
+      let cursor: string | undefined;
+      let projectCount = 0;
+
+      while (hasNextPage) {
+        // Check if we've reached the limit
+        if (limit !== undefined && projectCount >= limit) {
+          break;
+        }
+
+        // Fetch projects with initiatives and teams inline via GraphQL (avoids N+1)
+        const result = await this.gql<ProjectsQueryResult>(PROJECTS_WITH_INITIATIVES_QUERY, {
+          first: 50,
+          after: cursor,
+          includeArchived,
+        });
+
+        for (const project of result.projects.nodes) {
+          // Check if we've reached the limit
+          if (limit !== undefined && projectCount >= limit) {
+            break;
+          }
+
+          projectCount++;
+          const projectUpdatedAt = new Date(project.updatedAt);
+          const isRecentlyUpdated = projectUpdatedAt >= cutoffDate;
+          const hasInitiative = project.initiatives.nodes.length > 0;
+          const teamName = project.teams.nodes[0]?.name || 'Unknown';
+
+          allProjects.push({
+            id: project.id,
+            name: project.name,
+            state: project.state,
+            teamName,
+            url: project.url,
+            updatedAt: projectUpdatedAt,
+            hasInitiative,
+            isRecentlyUpdated,
+          });
+        }
+
+        hasNextPage = result.projects.pageInfo.hasNextPage;
+        cursor = result.projects.pageInfo.endCursor ?? undefined;
+      }
+
+      // Step 2: Filter projects based on mode
+      const projectsWithoutInitiatives = allProjects.filter((p) => !p.hasInitiative);
+      const projectsWithInitiatives = allProjects.filter((p) => p.hasInitiative);
+      const recentlyUpdatedCount = allProjects.filter((p) => p.isRecentlyUpdated).length;
+
+      // If noInitiativeOnly mode, return early with just the initiative-less projects
+      if (noInitiativeOnly) {
+        return {
+          projectsWithoutInitiative: projectsWithoutInitiatives.map((p) => ({
+            id: p.id,
+            name: p.name,
+            state: p.state,
+            teamName: p.teamName,
+            url: p.url,
+            updatedAt: new Date(p.updatedAt).toISOString(),
+          })),
+          skippedProjects: [],
+          summary: {
+            totalProjectsAnalyzed: allProjects.length,
+            projectsWithInitiative: projectsWithInitiatives.length,
+            projectsWithoutInitiative: projectsWithoutInitiatives.length,
+            skippedCount: 0,
+            limitApplied: limit,
+          },
+        };
+      }
+
+      // Full staleness analysis mode: filter to stale candidates (not recently updated + no initiative)
+      const staleCandidates = projectsWithoutInitiatives.filter((p) => !p.isRecentlyUpdated);
+      const projectsWithInitiativeCount = allProjects.filter(
+        (p) => !p.isRecentlyUpdated && p.hasInitiative,
+      ).length;
+
+      // Step 3: Check each project's activity (project updatedAt + issue activity)
+      const staleProjects: Array<{
+        id: string;
+        name: string;
+        state: string;
+        teamName: string;
+        url: string;
+        reason: 'no_issues' | 'all_issues_stale' | 'project_stale';
+        lastActivity?: string;
+      }> = [];
+
+      const activeProjects: Array<{
+        id: string;
+        name: string;
+        state: string;
+        teamName: string;
+        url: string;
+        lastActivity: string;
+      }> = [];
+
+      const skippedProjects: Array<{
+        id: string;
+        name: string;
+        error: string;
+      }> = [];
+
+      // staleCandidates already filtered to stale-looking projects (updatedAt < cutoff)
+      for (const project of staleCandidates) {
+        try {
+          // Check if ANY issue was updated since cutoff (avoids sort order ambiguity)
+          const recentIssues = await this.client.issues({
+            first: 1,
+            filter: {
+              project: { id: { eq: project.id } },
+              updatedAt: { gte: cutoffDateISO },
+            },
+          });
+
+          const hasRecentIssueActivity = recentIssues.nodes.length > 0;
+
+          if (hasRecentIssueActivity) {
+            // Has recent issue activity - not stale
+            activeProjects.push({
+              id: project.id,
+              name: project.name,
+              state: project.state,
+              teamName: project.teamName,
+              url: project.url,
+              lastActivity: new Date(recentIssues.nodes[0].updatedAt).toISOString(),
+            });
+          } else {
+            // No recent issue activity - check if project has any issues at all
+            const anyIssues = await this.client.issues({
+              first: 1,
+              filter: { project: { id: { eq: project.id } } },
+            });
+
+            const hasAnyIssues = anyIssues.nodes.length > 0;
+            const reason = hasAnyIssues ? 'all_issues_stale' : 'no_issues';
+
+            staleProjects.push({
+              id: project.id,
+              name: project.name,
+              state: project.state,
+              teamName: project.teamName,
+              url: project.url,
+              reason,
+              lastActivity: new Date(project.updatedAt).toISOString(),
+            });
+          }
+        } catch (error) {
+          // If we can't check issues, skip this project (don't falsely mark as stale)
+          skippedProjects.push({
+            id: project.id,
+            name: project.name,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
+      }
+
+      return {
+        staleProjects,
+        activeProjects,
+        skippedProjects,
+        summary: {
+          totalProjectsAnalyzed: allProjects.length,
+          recentlyUpdatedCount, // Projects skipped because they're recently updated
+          projectsWithInitiative: projectsWithInitiativeCount,
+          projectsWithoutInitiative: staleCandidates.length,
+          staleCount: staleProjects.length,
+          activeCount: activeProjects.length,
+          skippedCount: skippedProjects.length,
+          stalenessCutoffDate: cutoffDateISO.split('T')[0],
+          limitApplied: limit,
+        },
+      };
+    } catch (error) {
+      console.error('Error getting stale projects:', error);
       throw error;
     }
   }

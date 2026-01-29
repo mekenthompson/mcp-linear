@@ -1329,3 +1329,48 @@ export function isDeleteProjectAttachmentArgs(args: unknown): args is {
     typeof (args as { id: string }).id === 'string'
   );
 }
+
+/**
+ * Type guard for linear_getStaleProjects tool arguments
+ */
+export function isGetStaleProjectsArgs(args: unknown): args is {
+  stalenessMonths?: number;
+  includeArchived?: boolean;
+  noInitiativeOnly?: boolean;
+  limit?: number;
+} {
+  // Allow undefined or null (will use defaults)
+  if (args === undefined || args === null) {
+    return true;
+  }
+  if (typeof args !== 'object') {
+    return false;
+  }
+  // Validate stalenessMonths if present: must be a finite positive number
+  if ('stalenessMonths' in args) {
+    const months = (args as { stalenessMonths: unknown }).stalenessMonths;
+    if (typeof months !== 'number' || !Number.isFinite(months) || months <= 0) {
+      return false;
+    }
+  }
+  // Validate includeArchived if present
+  if ('includeArchived' in args) {
+    if (typeof (args as { includeArchived: unknown }).includeArchived !== 'boolean') {
+      return false;
+    }
+  }
+  // Validate noInitiativeOnly if present
+  if ('noInitiativeOnly' in args) {
+    if (typeof (args as { noInitiativeOnly: unknown }).noInitiativeOnly !== 'boolean') {
+      return false;
+    }
+  }
+  // Validate limit if present: must be a finite positive number
+  if ('limit' in args) {
+    const limit = (args as { limit: unknown }).limit;
+    if (typeof limit !== 'number' || !Number.isFinite(limit) || limit <= 0) {
+      return false;
+    }
+  }
+  return true;
+}

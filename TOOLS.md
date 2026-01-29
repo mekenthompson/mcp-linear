@@ -29,6 +29,7 @@ The following tools are currently implemented and available in the MCP Linear:
 | `linear_getProjectById`| Get a specific project by ID                                        | ✅ Implemented |
 | `linear_createProject` | Create a new project in Linear (supports leadId, memberIds, labelIds) | ✅ Implemented |
 | `linear_updateProject` | Update an existing project (supports leadId, memberIds, labelIds) | ✅ Implemented |
+| `linear_getStaleProjects` | Find stale projects (no initiative + no recent issue activity)   | ✅ Implemented |
 
 ### Project Labels
 

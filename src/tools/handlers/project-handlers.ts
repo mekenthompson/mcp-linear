@@ -7,6 +7,7 @@ import {
   isGetProjectByUrlArgs,
   isGetProjectIssuesArgs,
   isGetProjectsArgs,
+  isGetStaleProjectsArgs,
   isSearchProjectsArgs,
   isUpdateProjectArgs,
 } from '../type-guards.js';
@@ -202,6 +203,26 @@ export function handleGetProjectStatuses(linearService: LinearService) {
       return await linearService.getProjectStatuses();
     } catch (error) {
       logError('Error getting project statuses', error);
+      throw error;
+    }
+  };
+}
+
+/**
+ * Handler for finding stale projects
+ */
+export function handleGetStaleProjects(linearService: LinearService) {
+  return async (args: unknown) => {
+    try {
+      // Coerce undefined/null to empty object for validation
+      const normalizedArgs = args ?? {};
+      if (!isGetStaleProjectsArgs(normalizedArgs)) {
+        throw new Error('Invalid arguments for getStaleProjects');
+      }
+
+      return await linearService.getStaleProjects(normalizedArgs);
+    } catch (error) {
+      logError('Error getting stale projects', error);
       throw error;
     }
   };
